@@ -1,4 +1,4 @@
-import "../main.qbs" as LibProduct
+import "./main.qbs" as LibProduct
 
 LibProduct {
     name: "sqlextension"
