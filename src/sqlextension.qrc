@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="connecting">icons/connecting.gif</file>
+    </qresource>
+</RCC>
