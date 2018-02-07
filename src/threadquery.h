@@ -135,6 +135,16 @@ public:
     //! Очищает запрос
     void clear();
 
+// Работа с транзакциями
+    //! Начало транзакции
+    void transaction();
+
+    //! Завершение транзакции
+    void commit();
+
+    //! Откат транзакции
+    void rollback();
+
 signals:
     //! Сигнал об окончании выполнения операции
     void executeDone(bool success);

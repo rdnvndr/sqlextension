@@ -155,4 +155,31 @@ void ThreadQueryPrivate::clear()
     m_query->clear();
 }
 
+bool ThreadQueryPrivate::transaction()
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    bool ret = db.transaction();
+    if (!ret) emit error(db.lastError());
+
+    return ret;
+}
+
+bool ThreadQueryPrivate::commit()
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    bool ret = db.commit();
+    if (!ret) emit error(db.lastError());
+
+    return ret;
+}
+
+bool ThreadQueryPrivate::rollback()
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    bool ret = db.rollback();
+    if (!ret) emit error(db.lastError());
+
+    return ret;
+}
+
 }}
