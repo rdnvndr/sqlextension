@@ -203,6 +203,24 @@ void ThreadQuery::clear()
     QMetaObject::invokeMethod(m_queryPrivate, "clear", Qt::QueuedConnection);
 }
 
+void ThreadQuery::transaction()
+{
+    QMutexLocker locker(&m_mutex);
+    QMetaObject::invokeMethod(m_queryPrivate, "transaction", Qt::QueuedConnection);
+}
+
+void ThreadQuery::commit()
+{
+    QMutexLocker locker(&m_mutex);
+    QMetaObject::invokeMethod(m_queryPrivate, "commit", Qt::QueuedConnection);
+}
+
+void ThreadQuery::rollback()
+{
+    QMutexLocker locker(&m_mutex);
+    QMetaObject::invokeMethod(m_queryPrivate, "rollback", Qt::QueuedConnection);
+}
+
 void ThreadQuery::run()
 {
     m_queryPrivate = new ThreadQueryPrivate(

@@ -80,6 +80,16 @@ public slots:
     //! Очищает запрос
     void clear();
 
+// Работа с транзакциями
+    //! Начало транзакции
+    bool transaction();
+
+    //! Завершение транзакции
+    bool commit();
+
+    //! Откат транзакции
+    bool rollback();
+
 signals:
     //! Сигнал об окончании выполнения операции
     void executeDone(bool success);
