@@ -27,7 +27,7 @@ public:
 
 public slots:
 
-// Плдготовка и выполнение запроса
+// Подготовка и выполнение запроса
     //! Установка заполнителя
     void bindValue(const QString  &placeholder,
                    const QVariant &val, QSql::ParamType paramType = QSql::In);
@@ -41,7 +41,7 @@ public slots:
     //! Подготовка запроса
     bool prepare(const QString &query);
 
-    //! Выполнение подготовленого запроса
+    //! Выполнение подготовленного запроса
     bool execute();
 
     //! Выполнение указанного запроса
@@ -60,7 +60,7 @@ public slots:
     //! Перейти к указанной записи
     bool seek(int index, bool relative = false);
 
-    //! Перейти к предыдущнй записи
+    //! Перейти к предыдущей записи
     bool previous();
 
     //! Перейти к последней записи
@@ -74,7 +74,7 @@ public slots:
     void fetchOne();
 
 // Окончание выполнения запроса
-    //! Окончание выполнеия запроса
+    //! Окончание выполнения запроса
     void finish();
 
     //! Очищает запрос
@@ -94,16 +94,16 @@ signals:
     //! Сигнал об окончании выполнения операции
     void executeDone(bool success);
 
-    //! Возращает номер позиции
+    //! Возвращает номер позиции
     void changePosition(int pos);
 
-    //! Возращает ошибку
+    //! Возвращает ошибку
     void error(QSqlError err);
 
-    //! Возращает все значения из потока
+    //! Возвращает все значения из потока
     void values(const QList<QSqlRecord> &records);
 
-    //! Возращает значение из потока
+    //! Возвращает значение из потока
     void value(const QSqlRecord &record);
 
 private:

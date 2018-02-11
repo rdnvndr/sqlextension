@@ -60,16 +60,16 @@ public:
     //! Выполнение указанного запроса
     void execute(const QString &query);
 
-    //! Выполнение подготовленого запроса
+    //! Выполнение подготовленного запроса
     void execute();
 
     //! Выполнение ранее подготовленного запроса в пакете
     void executeBatch(QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows);
 
-    //! Возращает текущий запрос
+    //! Возвращает текущий запрос
     QString   lastQuery();
 
-    //! Возращает последнюю ошибку
+    //! Возвращает последнюю ошибку
     QSqlError lastError() const;
 
 // Позиционирование на записи
@@ -82,7 +82,7 @@ public:
     //! Перейти к указанной записи
     void seek(int index, bool relative = false);
 
-    //! Перейти к предыдущнй записи
+    //! Перейти к предыдущей записи
     void previous();
 
     //! Перейти к последней записи
@@ -96,7 +96,7 @@ public:
     void fetchOne();
 
 // Окончание выполнения запроса
-    //! Окончание выполнеия запроса
+    //! Окончание выполнения запроса
     void finish();
 
     //! Очищает запрос
@@ -119,23 +119,23 @@ signals:
     //! Сигнал об окончании выполнения операции
     void executeDone(bool success);
 
-    //! Возращает номер позиции
+    //! Возвращает номер позиции
     void changePosition(int pos);
 
-    //! Возращает ошибку
+    //! Возвращает ошибку
     void error(QSqlError err);
 
-    //! Возращает все значения из потока
+    //! Возвращает все значения из потока
     void values(const QList<QSqlRecord> &records);
 
-    //! Возращает значение из потока
+    //! Возвращает значение из потока
     void value(const QSqlRecord &record);
 
 private:
-    //! Многопоточный Sql запрос
+    //! Многопоточный SQL запрос
     ThreadQuery *m_query;
 
-    //! Пул многопоточных Sql запросов
+    //! Пул многопоточных SQL запросов
     ThreadQueryPool *m_pool;
 };
 

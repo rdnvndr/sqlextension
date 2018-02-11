@@ -7,8 +7,8 @@
 
 class  UuidTreeData;
 
-//! Класс модель дерева с UUID индетификатором
-/*! Данный класс предназначен для создания дерева на основе, UUID индефикаторов.
+//! Класс модель дерева с UUID идентификатором
+/*! Данный класс предназначен для создания дерева на основе, UUID идентификаторов.
     Узлы дерева связаны между собой полями идентификатор и ссылки на
     идентификатор родителя.\n
     Пример использования:
@@ -38,7 +38,7 @@ public:
     //! Деструктор модели
     ~UuidTreeModel();
 
-    //! Возращает хранимые данные
+    //! Возвращает хранимые данные
 	QVariant data(const QModelIndex &index, int role) const;
 
     //! Устанавливает значение для указанной записи
@@ -47,7 +47,7 @@ public:
     //! Возвращает флаг записи
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
-    //! Возращает название заголовка
+    //! Возвращает название заголовка
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const;
 
@@ -55,17 +55,17 @@ public:
     bool setHeaderData(int section, Qt::Orientation orientation,
                        const QVariant &value, int role);
 
-    //! Возращает индекс модели для строки и колонки
+    //! Возвращает индекс модели для строки и колонки
     QModelIndex index(int row, int column,
                       const QModelIndex &parent = QModelIndex()) const;
 
-    //! Возращает индекс родителя
+    //! Возвращает индекс родителя
     QModelIndex parent(const QModelIndex &index) const;
 
-    //! Возращает количество строк в индексе родителя
+    //! Возвращает количество строк в индексе родителя
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
 
-    //! Возращает количество столбцов в индексе родителя
+    //! Возвращает количество столбцов в индексе родителя
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
     //! Удаление строки

@@ -93,16 +93,16 @@ public:
     //! Выполнение указанного запроса
     void execute(const QString &query);
 
-    //! Выполнение подготовленого запроса
+    //! Выполнение подготовленного запроса
     void execute();
 
     //! Выполнение ранее подготовленного запроса в пакете
     void executeBatch(QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows);
 
-    //! Возращает текущий запрос
+    //! Возвращает текущий запрос
     QString   lastQuery();
 
-    //! Возращает последнюю ошибку
+    //! Возвращает последнюю ошибку
     QSqlError lastError() const;
 
 // Позиционирование на записи
@@ -155,10 +155,10 @@ signals:
     //! Возвращает ошибку
     void error(QSqlError err);
 
-    //! Возращает все значения из потока
+    //! Возвращает все значения из потока
     void values(const QList<QSqlRecord> &records);
 
-    //! Возращает значениt из потока
+    //! Возвращает значение из потока
     void value(const QSqlRecord &record);
 
 protected:

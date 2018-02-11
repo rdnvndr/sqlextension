@@ -35,7 +35,7 @@ DialogConnect::DialogConnect(QWidget *pwgt)
 
     QStringList drivers = QSqlDatabase::drivers();
 
-    // remove compat names
+    // remove names
     drivers.removeAll("QMYSQL3");
     drivers.removeAll("QOCI8");
     drivers.removeAll("QPSQL7");

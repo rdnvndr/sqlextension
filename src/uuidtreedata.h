@@ -15,7 +15,7 @@ struct UuidTreeNode
     QList<QVariant> data;
 };
 
-//! Абстракный класс узла дерева
+//! Абстрактный класс узла дерева
 /*! Данный абстрактный класс предназначен для создания узла дерева на основе,
     UUID идентификаторов. Узлы дерева связаны между собой полями идентификаторов
     и ссылками на идентификатор родителя. Для создания класса узла дерева
@@ -49,10 +49,10 @@ public:
     virtual ~UuidTreeData();
 
 
-    //! Возращает значение по UUID и номеру колонки
+    //! Возвращает значение по UUID и номеру колонки
     QVariant data(QString id, int column) const;
 
-    //! Возращает значение по UUID и названию колонки
+    //! Возвращает значение по UUID и названию колонки
     QVariant data(QString id, const QString &name) const;
 
     //! Устанавливает значение по UUID и номеру колонки
@@ -62,20 +62,20 @@ public:
     bool setData(QString id, const QString& name, const QVariant &value);
 
 
-    //! Возращает UUID родителя
+    //! Возвращает UUID родителя
     UuidTreeNode* parent(QString id) const;
 
-    //! Возращает UUID потомка
+    //! Возвращает UUID потомка
     UuidTreeNode* child(QString parent, int index) const;
 
-    //! Возращает индекс потомка
+    //! Возвращает индекс потомка
     int childIndex(QString parent, QString child) const;
 
 
-    //! Возращает количество детей в родителе
+    //! Возвращает количество детей в родителе
     int childCount(QString parent)  const;
 
-    //! Возращает количество записей
+    //! Возвращает количество записей
     int dataCount(QString id) const;
 
 
@@ -96,7 +96,7 @@ public:
     //! Установка списка полей для выборки из таблицы
     void setFields(const QStringList &dataFields);
 
-    //! Возращает узел дерева
+    //! Возвращает узел дерева
     UuidTreeNode *node(QString id) const;
 
 protected:

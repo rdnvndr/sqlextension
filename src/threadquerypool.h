@@ -25,7 +25,7 @@ public:
     //! Конструктор класса
     explicit ThreadQueryPool(QSqlDatabase db);
 
-    //! Выдаёт многопоточный SQL запрос
+    //! Выдает многопоточный SQL запрос
     ThreadQueryItem *threadQuery();
 
     //! Дружественный класс
