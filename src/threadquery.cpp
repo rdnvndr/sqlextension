@@ -25,7 +25,7 @@ ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db): QThread()
     this->start();
 }
 
-ThreadQuery::ThreadQuery(QSqlDatabase db)
+ThreadQuery::ThreadQuery(QSqlDatabase db): QThread()
 {
     m_driverName = db.driverName();
     m_databaseName = db.databaseName();
