@@ -10,7 +10,8 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db): QThread()
+ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db,
+                         ThreadQueryFunction func): QThread()
 {
     m_driverName = db.driverName();
     m_databaseName = db.databaseName();
@@ -21,11 +22,29 @@ ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db): QThread()
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = query;
+    m_executeDoneFunc = func;
 
     this->start();
 }
 
-ThreadQuery::ThreadQuery(QSqlDatabase db): QThread()
+ThreadQuery::ThreadQuery(ThreadQueryFunction func): QThread()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    m_driverName = db.driverName();
+    m_databaseName = db.databaseName();
+    m_hostName = db.hostName();
+    m_port = db.port();
+    m_userName = db.userName();
+    m_password = db.password();
+    m_precisionPolicy = db.numericalPrecisionPolicy();
+    m_forwardOnly = false;
+    m_queryText = "";
+    m_executeDoneFunc = func;
+
+    this->start();
+}
+
+ThreadQuery::ThreadQuery(QSqlDatabase db, ThreadQueryFunction func): QThread()
 {
     m_driverName = db.driverName();
     m_databaseName = db.databaseName();
@@ -36,6 +55,7 @@ ThreadQuery::ThreadQuery(QSqlDatabase db): QThread()
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = "";
+    m_executeDoneFunc = func;
 
     this->start();
 }
@@ -226,6 +246,7 @@ void ThreadQuery::run()
     m_queryPrivate = new ThreadQueryPrivate(
                 m_driverName, m_databaseName, m_hostName, m_port,
                 m_userName, m_password, m_queryText);
+    m_queryPrivate->setExecuteDone(m_executeDoneFunc);
 
     connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
             this, &ThreadQuery::pExecuteDone);

@@ -17,6 +17,7 @@ namespace RTPTechGroup {
 namespace SqlExtension {
 
 class ThreadQueryPrivate;
+typedef void ( *ThreadQueryFunction )(QSqlQuery *query);
 
 //! Класс предназначенный для выполнения SQL запросов в отдельном потоке
 /*! Пример:
@@ -55,10 +56,14 @@ class SQLEXTENSIONLIB ThreadQuery : public QThread
 public:
     //! Конструктор класса
     explicit ThreadQuery(const QString & query = QString(),
-                         QSqlDatabase db = QSqlDatabase::database());
+                         QSqlDatabase db = QSqlDatabase::database(),
+                         ThreadQueryFunction func = NULL);
 
     //! Конструктор класса
-    explicit ThreadQuery(QSqlDatabase db);
+    explicit ThreadQuery(QSqlDatabase db, ThreadQueryFunction func = NULL);
+
+    //! Конструктор класса
+    explicit ThreadQuery(ThreadQueryFunction func);
 
     //! Деструктор класса
     virtual ~ThreadQuery();
@@ -217,6 +222,9 @@ private:
 
     //! Обёртка над QSqlQuery
     ThreadQueryPrivate *m_queryPrivate;
+
+    //! Функция обработки окончания выполнения запроса
+    ThreadQueryFunction m_executeDoneFunc;
 };
 
 }}

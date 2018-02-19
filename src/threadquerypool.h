@@ -28,6 +28,9 @@ public:
     //! Выдает многопоточный SQL запрос
     ThreadQueryItem *threadQuery();
 
+    //! Устанавливает функцию обработки окончания запроса
+    void setExecuteDone(ThreadQueryFunction func);
+
     //! Дружественный класс
     friend ThreadQueryItem;
 
@@ -55,6 +58,9 @@ private:
 
     //! Очередь свободных многопоточных SQL запросов
     QQueue<ThreadQuery *> m_freeQueue;
+
+    //! Функция обработки окончания выполнения запроса
+    ThreadQueryFunction m_executeDoneFunc;
 };
 
 }}

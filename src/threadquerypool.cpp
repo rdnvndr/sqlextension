@@ -38,10 +38,15 @@ ThreadQueryItem *ThreadQueryPool::threadQuery()
         db.setPort(m_port);
         db.setUserName(m_userName);
         db.setPassword(m_password);
-        query = new ThreadQuery(db);
+        query = new ThreadQuery(db, m_executeDoneFunc);
     }
 
     return new ThreadQueryItem(query, this);
+}
+
+void ThreadQueryPool::setExecuteDone(ThreadQueryFunction func)
+{
+    m_executeDoneFunc = func;
 }
 
 void ThreadQueryPool::freeThreadQuery(ThreadQuery *query)

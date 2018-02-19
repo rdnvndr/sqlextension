@@ -77,6 +77,7 @@ bool ThreadQueryPrivate::execute()
     bool ret = m_query->exec();
     if (!ret) emit error(m_query->lastError());
     emit executeDone(ret);
+    if (ret && m_executeDoneFunc != NULL) m_executeDoneFunc(m_query);
     return ret;
 }
 
@@ -85,6 +86,7 @@ bool ThreadQueryPrivate::execute(const QString &query)
     bool ret = m_query->exec(query);
     if (!ret) emit error(m_query->lastError());
     emit executeDone(ret);
+    if (ret && m_executeDoneFunc != NULL) m_executeDoneFunc(m_query);
     return ret;
 }
 
@@ -180,6 +182,11 @@ bool ThreadQueryPrivate::rollback()
     if (!ret) emit error(db.lastError());
 
     return ret;
+}
+
+void ThreadQueryPrivate::setExecuteDone(ThreadQueryFunction func)
+{
+    m_executeDoneFunc = func;
 }
 
 }}
