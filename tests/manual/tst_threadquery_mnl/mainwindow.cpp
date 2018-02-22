@@ -45,11 +45,17 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->logPlainText->insertPlainText(
                         QString("Values: %1 \n")
                         .arg(record.value("FULLNAME").toString()));
+        ui->logPlainText->insertPlainText("End FetchAll\n");
         ui->logPlainText->insertPlainText("\n");
     });
 
     connect(m_threadTest, &ThreadQuery::changePosition, [=] (int pos) {
-        if (pos >= 0) m_threadTest->fetchOne();
+        if (pos >= 0)
+            m_threadTest->fetchOne();
+        else {
+            ui->logPlainText->insertPlainText("End FetchAll\n");
+            ui->logPlainText->insertPlainText("\n");
+        }
     });
 
     connect(m_threadTest, &ThreadQuery::value, [=] (const QSqlRecord &value)
@@ -73,4 +79,9 @@ void MainWindow::on_runPushButton_clicked()
     m_threadTest->prepare("SELECT * FROM COUNTRIES");
     m_threadTest->execute();
 
+}
+
+void MainWindow::on_stopPushButton_clicked()
+{
+    m_threadTest->stopFetchAll();
 }

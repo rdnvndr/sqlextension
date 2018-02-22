@@ -40,6 +40,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="stopPushButton">
+        <property name="text">
+         <string>Stop</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -50,7 +57,7 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>18</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

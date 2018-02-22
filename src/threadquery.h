@@ -136,6 +136,9 @@ public:
     //! Вызывает получение всех значений в потоке
     void fetchAll();
 
+    //! Останавливает получение всех значений в потоке
+    void stopFetchAll();
+
     //! Вызывает получение значения из потока
     void fetchOne();
 
@@ -231,6 +234,12 @@ private:
 
     //! Функция создания запроса
     ThreadQueryFunction m_createQuery;
+
+    //! Флаг остановки получения значений
+    bool m_stopFetch;
+
+    //! Мьютекс остановки получения значений
+    QMutex m_stopFetchMutex;
 };
 
 }}

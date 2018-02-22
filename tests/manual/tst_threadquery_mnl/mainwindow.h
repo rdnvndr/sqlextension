@@ -21,6 +21,8 @@ public:
 private slots:
     void on_runPushButton_clicked();
 
+    void on_stopPushButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     ThreadQuery *m_threadTest;

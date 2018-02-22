@@ -5,6 +5,7 @@
 #include <QtCore/QVariant>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
+#include <QtCore/QMutex>
 
 namespace RTPTechGroup {
 namespace SqlExtension {
@@ -24,6 +25,9 @@ public:
                                 const QString &query);
     //! Деструктор класса
     virtual ~ThreadQueryPrivate();
+
+    //! Устанавливает ссылку на флаг остановки получения значений
+    void setStopFetchFlag(bool *flag, QMutex *mutex);
 
 public slots:
 
@@ -112,6 +116,12 @@ private:
 
     //! Соединение с БД
     QString m_connectionName;
+
+    //! Флаг остановки получения значений
+    bool *m_stopFetch;
+
+    //! Мьютекс остановки получения значений
+    QMutex *m_stopFetchMutex;
 };
 
 }}
