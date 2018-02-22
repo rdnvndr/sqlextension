@@ -75,18 +75,23 @@ bool ThreadQueryPrivate::prepare(const QString &query)
 bool ThreadQueryPrivate::execute()
 {
     bool ret = m_query->exec();
-    if (!ret) emit error(m_query->lastError());
+    if (!ret)
+        emit error(m_query->lastError());
+    else if (m_executeDoneFunc != NULL) {
+        m_executeDoneFunc(m_query);
+    }
     emit executeDone(ret);
-    if (ret && m_executeDoneFunc != NULL) m_executeDoneFunc(m_query);
     return ret;
 }
 
 bool ThreadQueryPrivate::execute(const QString &query)
 {
     bool ret = m_query->exec(query);
-    if (!ret) emit error(m_query->lastError());
+    if (!ret)
+        emit error(m_query->lastError());
+    else if (ret && m_executeDoneFunc != NULL)
+        m_executeDoneFunc(m_query);
     emit executeDone(ret);
-    if (ret && m_executeDoneFunc != NULL) m_executeDoneFunc(m_query);
     return ret;
 }
 
