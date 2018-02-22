@@ -12,12 +12,18 @@
 #include <QtSql/QSqlRecord>
 
 #include "sqlextensionglobal.h"
+#include "threadquery_p.h"
 
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-class ThreadQueryPrivate;
-typedef void ( *ThreadQueryFunction )(QSqlQuery *query);
+typedef ThreadQueryPrivate* ( *ThreadQueryFunction )(const QString &driverName,
+                                      const QString &databaseName,
+                                      const QString &hostName,
+                                      int port,
+                                      const QString &userName,
+                                      const QString &password,
+                                      const QString &query);
 
 //! Класс предназначенный для выполнения SQL запросов в отдельном потоке
 /*! Пример:
@@ -223,8 +229,8 @@ private:
     //! Обёртка над QSqlQuery
     ThreadQueryPrivate *m_queryPrivate;
 
-    //! Функция обработки окончания выполнения запроса
-    ThreadQueryFunction m_executeDoneFunc;
+    //! Функция создания запроса
+    ThreadQueryFunction m_createQuery;
 };
 
 }}

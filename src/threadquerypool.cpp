@@ -5,7 +5,8 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-ThreadQueryPool::ThreadQueryPool(QObject *parent, QSqlDatabase db)
+ThreadQueryPool::ThreadQueryPool(QObject *parent, QSqlDatabase db,
+                                 ThreadQueryFunction func)
     : QObject(parent)
 {
     m_driverName = db.driverName();
@@ -14,9 +15,11 @@ ThreadQueryPool::ThreadQueryPool(QObject *parent, QSqlDatabase db)
     m_port = db.port();
     m_userName = db.userName();
     m_password = db.password();
+    m_createQuery = func;
 }
 
-ThreadQueryPool::ThreadQueryPool(QSqlDatabase db): QObject(nullptr)
+ThreadQueryPool::ThreadQueryPool(QSqlDatabase db, ThreadQueryFunction func)
+    : QObject(nullptr)
 {
     m_driverName = db.driverName();
     m_databaseName = db.databaseName();
@@ -24,6 +27,20 @@ ThreadQueryPool::ThreadQueryPool(QSqlDatabase db): QObject(nullptr)
     m_port = db.port();
     m_userName = db.userName();
     m_password = db.password();
+    m_createQuery = func;
+}
+
+ThreadQueryPool::ThreadQueryPool(ThreadQueryFunction func)
+    : QObject(nullptr)
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    m_driverName = db.driverName();
+    m_databaseName = db.databaseName();
+    m_hostName = db.hostName();
+    m_port = db.port();
+    m_userName = db.userName();
+    m_password = db.password();
+    m_createQuery = func;
 }
 
 ThreadQueryItem *ThreadQueryPool::threadQuery()
@@ -38,15 +55,10 @@ ThreadQueryItem *ThreadQueryPool::threadQuery()
         db.setPort(m_port);
         db.setUserName(m_userName);
         db.setPassword(m_password);
-        query = new ThreadQuery(db, m_executeDoneFunc);
+        query = new ThreadQuery(db, m_createQuery);
     }
 
     return new ThreadQueryItem(query, this);
-}
-
-void ThreadQueryPool::setExecuteDone(ThreadQueryFunction func)
-{
-    m_executeDoneFunc = func;
 }
 
 void ThreadQueryPool::freeThreadQuery(ThreadQuery *query)

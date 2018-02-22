@@ -22,7 +22,7 @@ ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db,
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = query;
-    m_executeDoneFunc = func;
+    m_createQuery = func;
 
     this->start();
 }
@@ -39,7 +39,7 @@ ThreadQuery::ThreadQuery(ThreadQueryFunction func): QThread()
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = "";
-    m_executeDoneFunc = func;
+    m_createQuery = func;
 
     this->start();
 }
@@ -55,7 +55,7 @@ ThreadQuery::ThreadQuery(QSqlDatabase db, ThreadQueryFunction func): QThread()
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = "";
-    m_executeDoneFunc = func;
+    m_createQuery = func;
 
     this->start();
 }
@@ -243,10 +243,16 @@ void ThreadQuery::rollback()
 
 void ThreadQuery::run()
 {
-    m_queryPrivate = new ThreadQueryPrivate(
-                m_driverName, m_databaseName, m_hostName, m_port,
-                m_userName, m_password, m_queryText);
-    m_queryPrivate->setExecuteDone(m_executeDoneFunc);
+    m_queryPrivate = (m_createQuery == NULL)
+            ? NULL : qobject_cast<ThreadQueryPrivate *> (
+                  m_createQuery(m_driverName, m_databaseName, m_hostName,
+                                m_port, m_userName, m_password, m_queryText)
+                  );
+
+    if (m_queryPrivate == NULL)
+        m_queryPrivate =  new ThreadQueryPrivate(
+                    m_driverName, m_databaseName, m_hostName, m_port,
+                    m_userName, m_password, m_queryText);
 
     connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
             this, &ThreadQuery::pExecuteDone);

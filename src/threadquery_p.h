@@ -9,8 +9,6 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-typedef void ( *ThreadQueryFunction )(QSqlQuery *query);
-
 //! Класс обёртка выполнения SQL запросов в отдельном потоке
 class ThreadQueryPrivate: public QObject
 {
@@ -92,10 +90,6 @@ public slots:
     //! Откат транзакции
     bool rollback();
 
-// Устанавливает функции обработки
-    //! Устанавливает функцию обработки окончания запроса
-    void setExecuteDone(ThreadQueryFunction func);
-
 signals:
     //! Сигнал об окончании выполнения операции
     void executeDone(bool success);
@@ -118,9 +112,6 @@ private:
 
     //! Соединение с БД
     QString m_connectionName;
-
-    //! Функция обработки окончания выполнения запроса
-    ThreadQueryFunction m_executeDoneFunc;
 };
 
 }}
