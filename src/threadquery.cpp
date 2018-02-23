@@ -23,6 +23,7 @@ ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db,
     m_forwardOnly = false;
     m_queryText = query;
     m_createQuery = func;
+    m_mutex.lock();
 
     this->start();
 }
@@ -40,6 +41,7 @@ ThreadQuery::ThreadQuery(ThreadQueryFunction func): QThread()
     m_forwardOnly = false;
     m_queryText = "";
     m_createQuery = func;
+    m_mutex.lock();
 
     this->start();
 }
@@ -56,6 +58,7 @@ ThreadQuery::ThreadQuery(QSqlDatabase db, ThreadQueryFunction func): QThread()
     m_forwardOnly = false;
     m_queryText = "";
     m_createQuery = func;
+    m_mutex.lock();
 
     this->start();
 }
@@ -283,6 +286,7 @@ void ThreadQuery::run()
 
     qRegisterMetaType< QSqlRecord >( "QSqlRecord" );
     connect(m_queryPrivate, &ThreadQueryPrivate::value, this, &ThreadQuery::value);
+    m_mutex.unlock();
 
     exec();
 }
