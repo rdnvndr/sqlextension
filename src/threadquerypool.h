@@ -20,14 +20,10 @@ class SQLEXTENSIONLIB  ThreadQueryPool : public QObject
 public:
     //! Конструктор класса
     explicit ThreadQueryPool(QObject *parent = nullptr,
-                             QSqlDatabase db = QSqlDatabase::database(),
-                             ThreadQueryFunction func = NULL);
+                             QSqlDatabase db = QSqlDatabase::database());
 
     //! Конструктор класса
-    explicit ThreadQueryPool(QSqlDatabase db, ThreadQueryFunction func = NULL);
-
-    //! Конструктор класса
-    explicit ThreadQueryPool(ThreadQueryFunction func);
+    explicit ThreadQueryPool(QSqlDatabase db);
 
     //! Выдает многопоточный SQL запрос
     ThreadQueryItem *threadQuery();
@@ -59,9 +55,6 @@ private:
 
     //! Очередь свободных многопоточных SQL запросов
     QQueue<ThreadQuery *> m_freeQueue;
-
-    //! Функция создания запроса
-    ThreadQueryFunction m_createQuery;
 };
 
 }}

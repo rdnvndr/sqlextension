@@ -10,8 +10,7 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db,
-                         ThreadQueryFunction func): QThread()
+ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db): QThread()
 {
     m_driverName = db.driverName();
     m_databaseName = db.databaseName();
@@ -22,31 +21,12 @@ ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db,
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = query;
-    m_createQuery = func;
     m_mutex.lock();
 
     this->start();
 }
 
-ThreadQuery::ThreadQuery(ThreadQueryFunction func): QThread()
-{
-    QSqlDatabase db = QSqlDatabase::database();
-    m_driverName = db.driverName();
-    m_databaseName = db.databaseName();
-    m_hostName = db.hostName();
-    m_port = db.port();
-    m_userName = db.userName();
-    m_password = db.password();
-    m_precisionPolicy = db.numericalPrecisionPolicy();
-    m_forwardOnly = false;
-    m_queryText = "";
-    m_createQuery = func;
-    m_mutex.lock();
-
-    this->start();
-}
-
-ThreadQuery::ThreadQuery(QSqlDatabase db, ThreadQueryFunction func): QThread()
+ThreadQuery::ThreadQuery(QSqlDatabase db): QThread()
 {
     m_driverName = db.driverName();
     m_databaseName = db.databaseName();
@@ -57,7 +37,6 @@ ThreadQuery::ThreadQuery(QSqlDatabase db, ThreadQueryFunction func): QThread()
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = "";
-    m_createQuery = func;
     m_mutex.lock();
 
     this->start();
@@ -256,17 +235,9 @@ void ThreadQuery::rollback()
 
 void ThreadQuery::run()
 {
-    m_queryPrivate = (m_createQuery == NULL)
-            ? NULL : qobject_cast<ThreadQueryPrivate *> (
-                  m_createQuery(m_driverName, m_databaseName, m_hostName,
-                                m_port, m_userName, m_password, m_queryText)
-                  );
-
-    if (m_queryPrivate == NULL)
-        m_queryPrivate =  new ThreadQueryPrivate(
-                    m_driverName, m_databaseName, m_hostName, m_port,
-                    m_userName, m_password, m_queryText);
-
+    m_queryPrivate =  new ThreadQueryPrivate(
+                m_driverName, m_databaseName, m_hostName, m_port,
+                m_userName, m_password, m_queryText);
 
     m_stopFetch = false;
     m_queryPrivate->setStopFetchFlag(&m_stopFetch, &m_stopFetchMutex);
@@ -274,8 +245,14 @@ void ThreadQuery::run()
     connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
             this, &ThreadQuery::pExecuteDone);
 
+    connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
+            this, &ThreadQuery::directExecuteDone, Qt::DirectConnection);
+
     connect(m_queryPrivate, &ThreadQueryPrivate::changePosition,
             this, &ThreadQuery::pChangePosition);
+
+    connect(m_queryPrivate, &ThreadQueryPrivate::changePosition,
+            this, &ThreadQuery::directChangePosition, Qt::DirectConnection);
 
     qRegisterMetaType< QSqlError >( "QSqlError" );
     connect(m_queryPrivate, &ThreadQueryPrivate::error,
@@ -284,8 +261,13 @@ void ThreadQuery::run()
     qRegisterMetaType< QList<QSqlRecord> >( "QList<QSqlRecord>" );
     connect(m_queryPrivate, &ThreadQueryPrivate::values, this, &ThreadQuery::values);
 
+    connect(m_queryPrivate, &ThreadQueryPrivate::values,
+            this, &ThreadQuery::directValues, Qt::DirectConnection);
+
     qRegisterMetaType< QSqlRecord >( "QSqlRecord" );
     connect(m_queryPrivate, &ThreadQueryPrivate::value, this, &ThreadQuery::value);
+    connect(m_queryPrivate, &ThreadQueryPrivate::value,
+            this, &ThreadQuery::directValue, Qt::DirectConnection);
     m_mutex.unlock();
 
     exec();
@@ -309,6 +291,26 @@ void ThreadQuery::pError(QSqlError err)
     emit error(err);
 
     qCWarning(lcSqlExtension) << err.text();
+}
+
+void ThreadQuery::directExecuteDone(bool success)
+{
+    Q_UNUSED(success)
+}
+
+void ThreadQuery::directChangePosition(int pos)
+{
+    Q_UNUSED(pos)
+}
+
+void ThreadQuery::directValues(const QList<QSqlRecord> &records)
+{
+    Q_UNUSED(records)
+}
+
+void ThreadQuery::directValue(const QSqlRecord &record)
+{
+    Q_UNUSED(record)
 }
 
 }}

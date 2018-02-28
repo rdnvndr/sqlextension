@@ -12,18 +12,11 @@
 #include <QtSql/QSqlRecord>
 
 #include "sqlextensionglobal.h"
-#include "threadquery_p.h"
 
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-typedef ThreadQueryPrivate* ( *ThreadQueryFunction )(const QString &driverName,
-                                      const QString &databaseName,
-                                      const QString &hostName,
-                                      int port,
-                                      const QString &userName,
-                                      const QString &password,
-                                      const QString &query);
+class ThreadQueryPrivate;
 
 //! Класс предназначенный для выполнения SQL запросов в отдельном потоке
 /*! Пример:
@@ -62,14 +55,10 @@ class SQLEXTENSIONLIB ThreadQuery : public QThread
 public:
     //! Конструктор класса
     explicit ThreadQuery(const QString & query = QString(),
-                         QSqlDatabase db = QSqlDatabase::database(),
-                         ThreadQueryFunction func = NULL);
+                         QSqlDatabase db = QSqlDatabase::database());
 
     //! Конструктор класса
-    explicit ThreadQuery(QSqlDatabase db, ThreadQueryFunction func = NULL);
-
-    //! Конструктор класса
-    explicit ThreadQuery(ThreadQueryFunction func);
+    explicit ThreadQuery(QSqlDatabase db);
 
     //! Деструктор класса
     virtual ~ThreadQuery();
@@ -160,19 +149,19 @@ public:
     void rollback();
 
 signals:
-    //! Сигнал об окончании выполнения операции
+    //! Сигнал об окончании выполнения операции в потоке
     void executeDone(bool success);
 
-    //! Возвращает номер позиции
+    //! Сигнал изменения номера позиции в потоке
     void changePosition(int pos);
 
-    //! Возвращает ошибку
+    //! Сигнал ошибки в потоке
     void error(QSqlError err);
 
-    //! Возвращает все значения из потока
+    //! Сигнал получения значений из потока
     void values(const QList<QSqlRecord> &records);
 
-    //! Возвращает значение из потока
+    //! Сигнал получения значения из потока
     void value(const QSqlRecord &record);
 
 protected:
@@ -188,6 +177,19 @@ private slots:
 
     //! Обработка ошибки
     void pError(QSqlError err);
+
+
+    //! Обработка окончания выполнения операции внутри потока
+    void directExecuteDone(bool success);
+
+    //! Обработка изменения номера позиции внутри потока
+    void directChangePosition(int pos);
+
+    //! Обработка получения всех значений внутри потока
+    void directValues(const QList<QSqlRecord> &records);
+
+    //! Обработка получения значения внутри потока
+    void directValue(const QSqlRecord &record);
 
 private:
     //! Мьютекс подготовки запроса
@@ -231,9 +233,6 @@ private:
 
     //! Обёртка над QSqlQuery
     ThreadQueryPrivate *m_queryPrivate;
-
-    //! Функция создания запроса
-    ThreadQueryFunction m_createQuery;
 
     //! Флаг остановки получения значений
     bool m_stopFetch;
