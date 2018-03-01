@@ -6,13 +6,31 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-ThreadQueryPrivate::ThreadQueryPrivate(const QString &driverName,
-                                 const QString &databaseName,
-                                 const QString &hostName,
-                                 int port, const
-                                 QString &userName,
-                                 const QString &password,
-                                 const QString &query)
+ThreadQueryPrivate::ThreadQueryPrivate()
+{
+
+}
+
+ThreadQueryPrivate::~ThreadQueryPrivate()
+{
+    delete m_query;
+    {
+        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+        if (db.isOpen()) db.close();
+    }
+    QSqlDatabase::removeDatabase(m_connectionName);
+}
+
+void ThreadQueryPrivate::setStopFetchFlag(bool *flag, QMutex *mutex)
+{
+    m_stopFetch = flag;
+    m_stopFetchMutex = mutex;
+}
+
+void ThreadQueryPrivate::databaseConnect(
+        const QString &driverName, const QString &databaseName,
+        const QString &hostName, int port, const QString &userName,
+        const QString &password, const QString &query)
 {
     QThread* curThread = QThread::currentThread();
     m_connectionName = QString("RTP0x%1").arg(
@@ -32,22 +50,6 @@ ThreadQueryPrivate::ThreadQueryPrivate(const QString &driverName,
         m_query = new QSqlQuery(db);
     else
         m_query = new QSqlQuery(query, db);
-}
-
-ThreadQueryPrivate::~ThreadQueryPrivate()
-{
-    delete m_query;
-    {
-        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-        if (db.isOpen()) db.close();
-    }
-    QSqlDatabase::removeDatabase(m_connectionName);
-}
-
-void ThreadQueryPrivate::setStopFetchFlag(bool *flag, QMutex *mutex)
-{
-    m_stopFetch = flag;
-    m_stopFetchMutex = mutex;
 }
 
 void ThreadQueryPrivate::bindValue(const QString &placeholder,

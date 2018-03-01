@@ -13,45 +13,51 @@ namespace SqlExtension {
 
 class ThreadQueryItem;
 
-//! Класс пула многопоточных SQL запросов
-class SQLEXTENSIONLIB  ThreadQueryPool : public QObject
+class IThreadQueryPool
 {
-    Q_OBJECT
+    //! Дружественный класс
+    friend class ThreadQueryItem;
+protected:
+    virtual void freeThreadQuery(ThreadQuery *query) = 0;
+};
+
+//template<class T = ThreadQuery> class ThreadQueryPool;
+
+//! Класс пула многопоточных SQL запросов
+template<class T>
+class SQLEXTENSIONLIB ThreadQueryPool: IThreadQueryPool
+{
+
 public:
     //! Конструктор класса
-    explicit ThreadQueryPool(QObject *parent = nullptr,
-                             QSqlDatabase db = QSqlDatabase::database());
-
-    //! Конструктор класса
-    explicit ThreadQueryPool(QSqlDatabase db);
+    explicit ThreadQueryPool(QSqlDatabase db = QSqlDatabase::database())
+    {
+        m_db = db;
+    }
 
     //! Выдает многопоточный SQL запрос
-    ThreadQueryItem *threadQuery();
+    ThreadQueryItem *threadQuery()
+    {
+        ThreadQuery *query;
+        if (!m_freeQueue.isEmpty()) {
+            query = m_freeQueue.dequeue();
+        } else {
+            query = dynamic_cast<ThreadQuery *>(new T(m_db));
+        }
 
-    //! Дружественный класс
-    friend ThreadQueryItem;
+        return new ThreadQueryItem(query, this);
+    }
 
 private:
     //! Освобождение многопоточного SQL запроса
-    void freeThreadQuery(ThreadQuery *query);
+    void freeThreadQuery(ThreadQuery *query)
+    {
+        query->clear();
+        m_freeQueue.enqueue(query);
+    }
 
-    //! Имя драйвера БД
-    QString m_driverName;
-
-    //! Имя БД
-    QString m_databaseName;
-
-    //! Имя хоста БД
-    QString m_hostName;
-
-    //! Порт БД
-    int m_port;
-
-    //! Логин пользователя БД
-    QString m_userName;
-
-    //! Пароль пользователя БД
-    QString m_password;
+    //! База данных
+    QSqlDatabase m_db;
 
     //! Очередь свободных многопоточных SQL запросов
     QQueue<ThreadQuery *> m_freeQueue;

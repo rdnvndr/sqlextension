@@ -235,9 +235,8 @@ void ThreadQuery::rollback()
 
 void ThreadQuery::run()
 {
-    m_queryPrivate =  new ThreadQueryPrivate(
-                m_driverName, m_databaseName, m_hostName, m_port,
-                m_userName, m_password, m_queryText);
+    m_queryPrivate =  new ThreadQueryPrivate();
+
 
     m_stopFetch = false;
     m_queryPrivate->setStopFetchFlag(&m_stopFetch, &m_stopFetchMutex);
@@ -259,16 +258,21 @@ void ThreadQuery::run()
             this, &ThreadQuery::pError);
 
     qRegisterMetaType< QList<QSqlRecord> >( "QList<QSqlRecord>" );
-    connect(m_queryPrivate, &ThreadQueryPrivate::values, this, &ThreadQuery::values);
-
+    connect(m_queryPrivate, &ThreadQueryPrivate::values,
+            this, &ThreadQuery::values);
     connect(m_queryPrivate, &ThreadQueryPrivate::values,
             this, &ThreadQuery::directValues, Qt::DirectConnection);
 
     qRegisterMetaType< QSqlRecord >( "QSqlRecord" );
-    connect(m_queryPrivate, &ThreadQueryPrivate::value, this, &ThreadQuery::value);
+    connect(m_queryPrivate, &ThreadQueryPrivate::value,
+            this, &ThreadQuery::value);
     connect(m_queryPrivate, &ThreadQueryPrivate::value,
             this, &ThreadQuery::directValue, Qt::DirectConnection);
     m_mutex.unlock();
+
+    m_queryPrivate->databaseConnect(
+                m_driverName, m_databaseName, m_hostName, m_port,
+                m_userName, m_password, m_queryText);
 
     exec();
 }

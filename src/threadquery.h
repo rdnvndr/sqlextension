@@ -180,16 +180,16 @@ private slots:
 
 
     //! Обработка окончания выполнения операции внутри потока
-    void directExecuteDone(bool success);
+    virtual void directExecuteDone(bool success);
 
     //! Обработка изменения номера позиции внутри потока
-    void directChangePosition(int pos);
+    virtual void directChangePosition(int pos);
 
     //! Обработка получения всех значений внутри потока
-    void directValues(const QList<QSqlRecord> &records);
+    virtual void directValues(const QList<QSqlRecord> &records);
 
     //! Обработка получения значения внутри потока
-    void directValue(const QSqlRecord &record);
+    virtual void directValue(const QSqlRecord &record);
 
 private:
     //! Мьютекс подготовки запроса

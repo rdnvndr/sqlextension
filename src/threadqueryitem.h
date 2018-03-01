@@ -9,7 +9,8 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-class ThreadQueryPool;
+template<class T> class ThreadQueryPool;
+class IThreadQueryPool;
 
 //! Класс предназначен для обёртки многопоточного SQL запроса
 class ThreadQueryItem : public QObject
@@ -18,7 +19,7 @@ class ThreadQueryItem : public QObject
 
 private:
     //! Конструктор класса
-    explicit ThreadQueryItem(ThreadQuery *query, ThreadQueryPool *pool);
+    explicit ThreadQueryItem(ThreadQuery *query, IThreadQueryPool *pool);
 
     //! Запрещает конструктор копирования
     ThreadQueryItem( const ThreadQueryItem& ) = delete;
@@ -116,7 +117,7 @@ public:
     void rollback();
 
     //! Дружественный класс
-    friend ThreadQueryPool;
+    template<class T> friend class ThreadQueryPool;
 
 signals:
     //! Сигнал об окончании выполнения операции
@@ -139,7 +140,7 @@ private:
     ThreadQuery *m_query;
 
     //! Пул многопоточных SQL запросов
-    ThreadQueryPool *m_pool;
+    IThreadQueryPool *m_pool;
 };
 
 }}

@@ -16,13 +16,8 @@ class ThreadQueryPrivate: public QObject
     Q_OBJECT
 public:
     //! Конструктор класса
-    explicit ThreadQueryPrivate(const QString &driverName,
-                                const QString &databaseName,
-                                const QString &hostName,
-                                int port,
-                                const QString &userName,
-                                const QString &password,
-                                const QString &query);
+    explicit ThreadQueryPrivate();
+
     //! Деструктор класса
     virtual ~ThreadQueryPrivate();
 
@@ -30,6 +25,10 @@ public:
     void setStopFetchFlag(bool *flag, QMutex *mutex);
 
 public slots:
+    //! Устанавливает соединение
+    void databaseConnect(const QString &driverName, const QString &databaseName,
+                 const QString &hostName, int port, const QString &userName,
+                 const QString &password, const QString &query);
 
 // Подготовка и выполнение запроса
     //! Установка заполнителя

@@ -5,7 +5,7 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-ThreadQueryItem::ThreadQueryItem(ThreadQuery *query, ThreadQueryPool *pool)
+ThreadQueryItem::ThreadQueryItem(ThreadQuery *query, IThreadQueryPool *pool)
     : QObject(query)
 {
     m_query = query;
