@@ -27,7 +27,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_threadTest = new ThreadQuery();
 
-    connect(m_threadTest, &ThreadQuery::executeDone, [=] (bool success) {
+    connect(m_threadTest, &ThreadQuery::executeDone,
+            this, [=] (bool success) {
         if (success) {
             ui->logPlainText->insertPlainText("Execute done.\n");
             m_threadTest->fetchAll();
@@ -38,7 +39,8 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
 
-    connect(m_threadTest, &ThreadQuery::values, [=] (const QList<QSqlRecord> &values)
+    connect(m_threadTest, &ThreadQuery::values,
+            this, [=] (const QList<QSqlRecord> &values)
     {
         ui->logPlainText->insertPlainText("\n");
         foreach (QSqlRecord record, values)
@@ -49,7 +51,8 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->logPlainText->insertPlainText("\n");
     });
 
-    connect(m_threadTest, &ThreadQuery::changePosition, [=] (int pos) {
+    connect(m_threadTest, &ThreadQuery::changePosition,
+            this, [=] (int pos) {
         if (pos >= 0)
             m_threadTest->fetchOne();
         else {
@@ -58,7 +61,8 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
 
-    connect(m_threadTest, &ThreadQuery::value, [=] (const QSqlRecord &value)
+    connect(m_threadTest, &ThreadQuery::value,
+            this, [=] (const QSqlRecord &value)
     {
         ui->logPlainText->insertPlainText(
                     QString("Value: %1 \n")

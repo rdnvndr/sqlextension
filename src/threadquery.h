@@ -178,19 +178,6 @@ private slots:
     //! Обработка ошибки
     void pError(QSqlError err);
 
-
-    //! Обработка окончания выполнения операции внутри потока
-    virtual void directExecuteDone(bool success);
-
-    //! Обработка изменения номера позиции внутри потока
-    virtual void directChangePosition(int pos);
-
-    //! Обработка получения всех значений внутри потока
-    virtual void directValues(const QList<QSqlRecord> &records);
-
-    //! Обработка получения значения внутри потока
-    virtual void directValue(const QSqlRecord &record);
-
 private:
     //! Мьютекс подготовки запроса
     QMutex m_mutex;

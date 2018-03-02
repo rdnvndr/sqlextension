@@ -237,37 +237,26 @@ void ThreadQuery::run()
 {
     m_queryPrivate =  new ThreadQueryPrivate();
 
-
     m_stopFetch = false;
     m_queryPrivate->setStopFetchFlag(&m_stopFetch, &m_stopFetchMutex);
 
     connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
-            this, &ThreadQuery::pExecuteDone);
-
-    connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
-            this, &ThreadQuery::directExecuteDone, Qt::DirectConnection);
+            this, &ThreadQuery::pExecuteDone, Qt::DirectConnection);
 
     connect(m_queryPrivate, &ThreadQueryPrivate::changePosition,
-            this, &ThreadQuery::pChangePosition);
-
-    connect(m_queryPrivate, &ThreadQueryPrivate::changePosition,
-            this, &ThreadQuery::directChangePosition, Qt::DirectConnection);
+            this, &ThreadQuery::pChangePosition, Qt::DirectConnection);
 
     qRegisterMetaType< QSqlError >( "QSqlError" );
     connect(m_queryPrivate, &ThreadQueryPrivate::error,
-            this, &ThreadQuery::pError);
+            this, &ThreadQuery::pError, Qt::DirectConnection);
 
     qRegisterMetaType< QList<QSqlRecord> >( "QList<QSqlRecord>" );
     connect(m_queryPrivate, &ThreadQueryPrivate::values,
-            this, &ThreadQuery::values);
-    connect(m_queryPrivate, &ThreadQueryPrivate::values,
-            this, &ThreadQuery::directValues, Qt::DirectConnection);
+            this, &ThreadQuery::values, Qt::DirectConnection);
 
     qRegisterMetaType< QSqlRecord >( "QSqlRecord" );
     connect(m_queryPrivate, &ThreadQueryPrivate::value,
-            this, &ThreadQuery::value);
-    connect(m_queryPrivate, &ThreadQueryPrivate::value,
-            this, &ThreadQuery::directValue, Qt::DirectConnection);
+            this, &ThreadQuery::value, Qt::DirectConnection);
     m_mutex.unlock();
 
     m_queryPrivate->databaseConnect(
@@ -295,26 +284,6 @@ void ThreadQuery::pError(QSqlError err)
     emit error(err);
 
     qCWarning(lcSqlExtension) << err.text();
-}
-
-void ThreadQuery::directExecuteDone(bool success)
-{
-    Q_UNUSED(success)
-}
-
-void ThreadQuery::directChangePosition(int pos)
-{
-    Q_UNUSED(pos)
-}
-
-void ThreadQuery::directValues(const QList<QSqlRecord> &records)
-{
-    Q_UNUSED(records)
-}
-
-void ThreadQuery::directValue(const QSqlRecord &record)
-{
-    Q_UNUSED(record)
 }
 
 }}
