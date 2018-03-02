@@ -1,15 +1,13 @@
 #ifndef THREADQUERYITEM_H
 #define THREADQUERYITEM_H
 
-#include <QObject>
+#include <QtCore/QObject>
 
 #include "threadquery.h"
-#include "threadquerypool.h"
 
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-template<class T> class ThreadQueryPool;
 class IThreadQueryPool;
 
 //! Класс предназначен для обёртки многопоточного SQL запроса

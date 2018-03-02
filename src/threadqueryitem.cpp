@@ -1,12 +1,13 @@
 #include "threadqueryitem.h"
+#include "threadquerypool.h"
 
-#include <QVariant>
+#include <QtCore/QVariant>
 
 namespace RTPTechGroup {
 namespace SqlExtension {
 
 ThreadQueryItem::ThreadQueryItem(ThreadQuery *query, IThreadQueryPool *pool)
-    : QObject(query)
+    : QObject()
 {
     m_query = query;
     m_pool  = pool;
@@ -25,7 +26,10 @@ ThreadQueryItem::ThreadQueryItem(ThreadQuery *query, IThreadQueryPool *pool)
 
 ThreadQueryItem::~ThreadQueryItem()
 {
-    m_pool->freeThreadQuery(m_query);
+    if (m_pool)
+        m_pool->freeThreadQuery(this);
+    else
+        delete m_query;
 }
 
 void ThreadQueryItem::setNumericalPrecisionPolicy(
