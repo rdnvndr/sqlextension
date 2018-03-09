@@ -169,11 +169,6 @@ protected:
     void run() Q_DECL_OVERRIDE;
 
 private slots:
-    //! Обработка окончания выполнения операции
-    void pExecuteDone(bool success);
-
-    //! Обработка изменения позиции
-    void pChangePosition(int pos);
 
     //! Обработка ошибки
     void pError(QSqlError err);

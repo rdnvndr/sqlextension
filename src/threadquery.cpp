@@ -234,10 +234,10 @@ void ThreadQuery::run()
     m_queryPrivate =  new ThreadQueryPrivate();
 
     connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
-            this, &ThreadQuery::pExecuteDone, Qt::DirectConnection);
+            this, &ThreadQuery::executeDone, Qt::DirectConnection);
 
     connect(m_queryPrivate, &ThreadQueryPrivate::changePosition,
-            this, &ThreadQuery::pChangePosition, Qt::DirectConnection);
+            this, &ThreadQuery::changePosition, Qt::DirectConnection);
 
     qRegisterMetaType< QSqlError >( "QSqlError" );
     connect(m_queryPrivate, &ThreadQueryPrivate::error,
@@ -257,16 +257,6 @@ void ThreadQuery::run()
                 m_userName, m_password, m_queryText);
 
     exec();
-}
-
-void ThreadQuery::pExecuteDone(bool success)
-{
-    emit executeDone(success);
-}
-
-void ThreadQuery::pChangePosition(int pos)
-{
-    emit changePosition(pos);
 }
 
 void ThreadQuery::pError(QSqlError err)
