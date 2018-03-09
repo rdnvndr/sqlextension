@@ -2,6 +2,7 @@
 #define THREADQUERYITEM_H
 
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 
 #include "threadquery.h"
 
@@ -138,7 +139,7 @@ private:
     ThreadQuery *m_query;
 
     //! Пул многопоточных SQL запросов
-    IThreadQueryPool *m_pool;
+    QPointer<IThreadQueryPool> m_pool;
 };
 
 }}

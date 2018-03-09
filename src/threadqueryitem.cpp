@@ -13,21 +13,21 @@ ThreadQueryItem::ThreadQueryItem(ThreadQuery *query, IThreadQueryPool *pool)
     m_pool  = pool;
 
     connect(m_query,  &ThreadQuery::executeDone,
-            this, &ThreadQueryItem::executeDone);
+            this, &ThreadQueryItem::executeDone, Qt::DirectConnection);
     connect(m_query,  &ThreadQuery::changePosition,
-            this, &ThreadQueryItem::changePosition);
+            this, &ThreadQueryItem::changePosition, Qt::DirectConnection);
     connect(m_query,  &ThreadQuery::error,
-            this, &ThreadQueryItem::error);
+            this, &ThreadQueryItem::error, Qt::DirectConnection);
     connect(m_query,  &ThreadQuery::values,
-            this, &ThreadQueryItem::values);
+            this, &ThreadQueryItem::values, Qt::DirectConnection);
     connect(m_query,  &ThreadQuery::value,
-            this, &ThreadQueryItem::value);
+            this, &ThreadQueryItem::value, Qt::DirectConnection);
 }
 
 ThreadQueryItem::~ThreadQueryItem()
 {
     if (m_pool)
-        m_pool->freeThreadQuery(this);
+        m_pool->freeThreadQuery(this->m_query);
     else
         delete m_query;
 }
