@@ -184,17 +184,13 @@ void ThreadQuery::last()
 void ThreadQuery::fetchAll()
 {
     QMutexLocker locker(&m_mutex);
-    {
-        QMutexLocker locker(&m_stopFetchMutex);
-        m_stopFetch = false;
-    }
     QMetaObject::invokeMethod(m_queryPrivate, "fetchAll", Qt::QueuedConnection);
 }
 
-void ThreadQuery::stopFetchAll()
+void ThreadQuery::stopFetch()
 {
-    QMutexLocker locker(&m_stopFetchMutex);
-    m_stopFetch = true;
+    QMutexLocker locker(&m_mutex);
+    QMetaObject::invokeMethod(m_queryPrivate, "stopFetch", Qt::QueuedConnection);
 }
 
 void ThreadQuery::fetchOne()
@@ -236,9 +232,6 @@ void ThreadQuery::rollback()
 void ThreadQuery::run()
 {
     m_queryPrivate =  new ThreadQueryPrivate();
-
-    m_stopFetch = false;
-    m_queryPrivate->setStopFetchFlag(&m_stopFetch, &m_stopFetchMutex);
 
     connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
             this, &ThreadQuery::pExecuteDone, Qt::DirectConnection);

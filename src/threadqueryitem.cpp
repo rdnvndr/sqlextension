@@ -129,9 +129,9 @@ void ThreadQueryItem::fetchAll()
     m_query->fetchAll();
 }
 
-void ThreadQueryItem::stopFetchAll()
+void ThreadQueryItem::stopFetch()
 {
-    m_query->stopFetchAll();
+    m_query->stopFetch();
 }
 
 void ThreadQueryItem::fetchOne()

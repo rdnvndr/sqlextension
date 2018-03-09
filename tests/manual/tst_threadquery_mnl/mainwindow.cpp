@@ -87,5 +87,5 @@ void MainWindow::on_runPushButton_clicked()
 
 void MainWindow::on_stopPushButton_clicked()
 {
-    m_threadTest->stopFetchAll();
+    m_threadTest->stopFetch();
 }

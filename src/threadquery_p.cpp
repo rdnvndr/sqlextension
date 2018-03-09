@@ -21,12 +21,6 @@ ThreadQueryPrivate::~ThreadQueryPrivate()
     QSqlDatabase::removeDatabase(m_connectionName);
 }
 
-void ThreadQueryPrivate::setStopFetchFlag(bool *flag, QMutex *mutex)
-{
-    m_stopFetch = flag;
-    m_stopFetchMutex = mutex;
-}
-
 void ThreadQueryPrivate::databaseConnect(
         const QString &driverName, const QString &databaseName,
         const QString &hostName, int port, const QString &userName,
@@ -142,12 +136,15 @@ bool ThreadQueryPrivate::last()
 
 void ThreadQueryPrivate::fetchAll()
 {
+    m_stopFetchMutex.lock();
+    m_stopFetch = false;
+    m_stopFetchMutex.unlock();
     QList<QSqlRecord> records;
     while (m_query->next())
     {
         {
-            QMutexLocker locker(m_stopFetchMutex);
-            if (*m_stopFetch)
+            QMutexLocker locker(&m_stopFetchMutex);
+            if (m_stopFetch)
                 break;
         }
         records.append(m_query->record());
@@ -158,6 +155,13 @@ void ThreadQueryPrivate::fetchAll()
 void ThreadQueryPrivate::fetchOne()
 {
     emit value(m_query->record());
+}
+
+void ThreadQueryPrivate::stopFetch()
+{
+    QMutexLocker locker(&m_stopFetchMutex);
+    m_stopFetch = true;
+    emit changePosition(-1);
 }
 
 void ThreadQueryPrivate::finish()
