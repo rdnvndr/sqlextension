@@ -3,7 +3,6 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QQueue>
-#include <QtCore/QSet>
 #include <QtSql/QSqlDatabase>
 
 #include "threadquery.h"
@@ -15,7 +14,7 @@ namespace SqlExtension {
 //! Интерфейс пула многопоточных SQL запросов
 class IThreadQueryPool : public QObject
 {
-
+    Q_OBJECT
 public:
     explicit IThreadQueryPool() : QObject() {
 
@@ -44,18 +43,22 @@ public:
 
     //! Деструктор класса
     virtual ~ThreadQueryPool() {
+        QMutexLocker locker(&m_mutex);
         qDeleteAll(m_freeQueue);
     }
 
     //! Выдает многопоточный SQL запрос
     ThreadQueryItem *threadQuery()
     {
-        ThreadQuery *query;
-        if (!m_freeQueue.isEmpty()) {
-            query = m_freeQueue.dequeue();
-        } else {
+        m_mutex.lock();
+        ThreadQuery *query = (!m_freeQueue.isEmpty())
+                ? m_freeQueue.dequeue() : NULL;
+        m_mutex.unlock();
+
+        if (query == NULL) {
             query = dynamic_cast<ThreadQuery *>(new T(m_db));
         }
+
         return new ThreadQueryItem(query, this);
     }
 
@@ -63,10 +66,14 @@ protected:
     //! Освобождает многопоточный SQL запрос
     void freeThreadQuery(ThreadQuery *item)
     {
+        QMutexLocker locker(&m_mutex);
         m_freeQueue.enqueue(item);
     }
 
 private:
+    //! Мьютекс для работы с очередью
+    QMutex m_mutex;
+
     //! База данных
     QSqlDatabase m_db;
 
