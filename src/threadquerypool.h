@@ -11,32 +11,19 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-//! Интерфейс пула многопоточных SQL запросов
-class IThreadQueryPool : public QObject
-{
-    Q_OBJECT
-public:
-    explicit IThreadQueryPool() : QObject() {
 
-    }
-
-    //! Дружественный класс
-    friend class ThreadQueryItem;
-
-protected:
-    //! Освобождает многопоточный SQL запрос
-    virtual void freeThreadQuery(ThreadQuery *item) = 0;
-};
+template<class T>
+class ThreadQueryItem;
 
 //! Класс пула многопоточных SQL запросов
 template<class T>
-class SQLEXTENSIONLIB ThreadQueryPool: public IThreadQueryPool
+class SQLEXTENSIONLIB ThreadQueryPool : public QObject
 {
 
 public:
     //! Конструктор класса
     explicit ThreadQueryPool(QSqlDatabase db = QSqlDatabase::database())
-        : IThreadQueryPool()
+        : QObject()
     {
         m_db = db;
     }
@@ -48,23 +35,25 @@ public:
     }
 
     //! Выдает многопоточный SQL запрос
-    ThreadQueryItem *threadQuery()
+    ThreadQueryItem<T> *acquire()
     {
         m_mutex.lock();
-        ThreadQuery *query = (!m_freeQueue.isEmpty())
+        ThreadQueryItem<T> *query = (!m_freeQueue.isEmpty())
                 ? m_freeQueue.dequeue() : NULL;
         m_mutex.unlock();
 
-        if (query == NULL) {
-            query = dynamic_cast<ThreadQuery *>(new T(m_db));
-        }
+        if (query == NULL)
+            query = new ThreadQueryItem<T>(this, m_db);
 
-        return new ThreadQueryItem(query, this);
+        return query;
     }
 
-protected:
+    //! Дружественный класс
+    friend class ThreadQueryItem<T>;
+
+private:
     //! Освобождает многопоточный SQL запрос
-    void freeThreadQuery(ThreadQuery *item)
+    void release(ThreadQueryItem<T> *item)
     {
         QMutexLocker locker(&m_mutex);
         m_freeQueue.enqueue(item);
@@ -78,7 +67,7 @@ private:
     QSqlDatabase m_db;
 
     //! Очередь свободных многопоточных SQL запросов
-    QQueue<ThreadQuery *> m_freeQueue;
+    QQueue<ThreadQueryItem<T> *> m_freeQueue;
 };
 
 }}

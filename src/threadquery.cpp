@@ -250,11 +250,16 @@ void ThreadQuery::run()
     qRegisterMetaType< QSqlRecord >( "QSqlRecord" );
     connect(m_queryPrivate, &ThreadQueryPrivate::value,
             this, &ThreadQuery::value, Qt::DirectConnection);
+
+    QMetaObject::invokeMethod(
+                m_queryPrivate, "databaseConnect", Qt::QueuedConnection,
+                Q_ARG(QString, m_driverName), Q_ARG(QString, m_databaseName),
+                Q_ARG(QString, m_hostName), Q_ARG(int, m_port),
+                Q_ARG(QString, m_userName), Q_ARG(QString, m_password),
+                Q_ARG(QString, m_queryText));
+
     m_mutex.unlock();
 
-    m_queryPrivate->databaseConnect(
-                m_driverName, m_databaseName, m_hostName, m_port,
-                m_userName, m_password, m_queryText);
 
     exec();
 }
