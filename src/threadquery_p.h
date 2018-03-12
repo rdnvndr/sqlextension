@@ -5,7 +5,7 @@
 #include <QtCore/QVariant>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
-#include <QtCore/QMutex>
+#include <QtCore/QReadWriteLock>
 
 namespace RTPTechGroup {
 namespace SqlExtension {
@@ -120,7 +120,7 @@ private:
     bool m_stopFetch;
 
     //! Мьютекс остановки получения значений
-    QMutex m_stopFetchMutex;
+    QReadWriteLock m_stopFetchMutex;
 };
 
 }}
