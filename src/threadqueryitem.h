@@ -22,14 +22,14 @@ public:
     //! Возвращает в пул многопоточных SQL запросов
     void release() {
         if (m_pool) {
-            m_isNew = false;
+            m_new = false;
             m_pool->release(this);
         }
     }
 
     //! Проверяет новый ли многопоточный SQL запрос
     bool isNew() {
-        return m_isNew;
+        return m_new;
     }
 
     //! Дружественный класс
@@ -40,7 +40,7 @@ private:
     explicit ThreadQueryItem(ThreadQueryPool<T> *pool, QSqlDatabase db) : T(db)
     {
          m_pool  = pool;
-         m_isNew = true;
+         m_new = true;
     }
 
     //! Запрещает конструктор копирования
@@ -56,7 +56,8 @@ private:
     //! Пул многопоточных SQL запросов
     QPointer< ThreadQueryPool<T> > m_pool;
 
-    bool m_isNew;
+    //! Флаг нового многопоточного SQL запроса
+    bool m_new;
 };
 
 }}
