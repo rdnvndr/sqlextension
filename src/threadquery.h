@@ -63,6 +63,13 @@ public:
     //! Деструктор класса
     virtual ~ThreadQuery();
 
+    enum Location
+    {
+        BeforeFirstRow = -1, //!< Позиция курсора перед первой строкой
+        AfterLastRow   = -2, //!< Позиция курсора после последней строки
+        StoppedFetch   = -3  //!< Получение значений прервано
+    };
+
 // Общие настройки
      //! Установка политики точности числа
     void setNumericalPrecisionPolicy(QSql::NumericalPrecisionPolicy precisionPolicy);
