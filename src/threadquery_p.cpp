@@ -1,6 +1,7 @@
 #include "threadquery_p.h"
 
 #include <QtCore/QThread>
+#include <QtCore/QCoreApplication>
 #include <QtSql/QSqlRecord>
 
 namespace RTPTechGroup {
@@ -195,7 +196,8 @@ void ThreadQueryPrivate::stopFetch()
 {
     QWriteLocker locker(&m_stopFetchMutex);
     m_stopFetch = true;
-    emit changePosition(-1);
+    QCoreApplication::removePostedEvents(this);
+    emit changePosition(-3);
 }
 
 void ThreadQueryPrivate::finish()
