@@ -120,7 +120,7 @@ bool ThreadQueryPrivate::first()
         return false;
 
     bool ret = m_query->first();
-    emit changePosition(ret ? m_query->at() : -1);
+    emit changePosition(m_query->at());
     return ret;
 }
 
@@ -131,7 +131,7 @@ bool ThreadQueryPrivate::next()
         return false;
 
     bool ret = m_query->next();
-    emit changePosition(ret ? m_query->at() : -1);
+    emit changePosition(m_query->at());
     return ret;
 }
 
@@ -142,7 +142,7 @@ bool ThreadQueryPrivate::seek(int index, bool relative)
         return false;
 
     bool ret = m_query->seek(index, relative);
-    emit changePosition(ret ? m_query->at() : -1);
+    emit changePosition(m_query->at());
     return ret;
 }
 
@@ -153,7 +153,7 @@ bool ThreadQueryPrivate::previous()
         return false;
 
     bool ret = m_query->previous();
-    emit changePosition(ret ? m_query->at() : -1);
+    emit changePosition(m_query->at());
     return ret;
 }
 
@@ -164,7 +164,7 @@ bool ThreadQueryPrivate::last()
         return false;
 
     bool ret = m_query->last();
-    emit changePosition(ret ? m_query->at() : -1);
+    emit changePosition(m_query->at());
     return ret;
 }
 
