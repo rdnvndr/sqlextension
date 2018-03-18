@@ -21,6 +21,9 @@ public:
     //! Деструктор класса
     virtual ~ThreadQueryPrivate();
 
+    //! Устанавливает флаг остановки получения значений
+    void setStopFetch(volatile bool *stopFetch);
+
 public slots:
     //! Устанавливает соединение
     void databaseConnect(const QString &driverName, const QString &databaseName,
@@ -73,9 +76,6 @@ public slots:
     //! Вызывает получение значения из потока
     void fetchOne();
 
-    //! Останавливает получение значений в потоке
-    void stopFetch();
-
 // Окончание выполнения запроса
     //! Окончание выполнения запроса
     void finish();
@@ -117,10 +117,7 @@ private:
     QString m_connectionName;
 
     //! Флаг остановки получения значений
-    bool m_stopFetch;
-
-    //! Мьютекс остановки получения значений
-    QReadWriteLock m_stopFetchMutex;
+    volatile bool *m_stopFetch;
 };
 
 }}

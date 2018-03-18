@@ -9,7 +9,7 @@ namespace SqlExtension {
 
 ThreadQueryPrivate::ThreadQueryPrivate()
 {
-
+    m_stopFetch = NULL;
 }
 
 ThreadQueryPrivate::~ThreadQueryPrivate()
@@ -77,12 +77,11 @@ bool ThreadQueryPrivate::prepare(const QString &query)
 
 bool ThreadQueryPrivate::execute()
 {
+    QCoreApplication::removePostedEvents(this);
     bool ret = m_query->exec();
     if (!ret) emit error(m_query->lastError());
 
-    m_stopFetchMutex.lockForWrite();
-    m_stopFetch = false;
-    m_stopFetchMutex.unlock();
+    *m_stopFetch = false;
 
     emit executeDone(ret);
     return ret;
@@ -90,12 +89,11 @@ bool ThreadQueryPrivate::execute()
 
 bool ThreadQueryPrivate::execute(const QString &query)
 {
+    QCoreApplication::removePostedEvents(this);
     bool ret = m_query->exec(query);
     if (!ret) emit error(m_query->lastError());
 
-    m_stopFetchMutex.lockForWrite();
-    m_stopFetch = false;
-    m_stopFetchMutex.unlock();
+    *m_stopFetch = false;
 
     emit executeDone(ret);
     return ret;
@@ -103,11 +101,10 @@ bool ThreadQueryPrivate::execute(const QString &query)
 
 bool ThreadQueryPrivate::executeBatch(QSqlQuery::BatchExecutionMode mode)
 {
+    QCoreApplication::removePostedEvents(this);
     bool ret = m_query->execBatch(mode);
 
-    m_stopFetchMutex.lockForWrite();
-    m_stopFetch = false;
-    m_stopFetchMutex.unlock();
+    *m_stopFetch = false;
 
     emit executeDone(ret);
     return ret;
@@ -115,9 +112,9 @@ bool ThreadQueryPrivate::executeBatch(QSqlQuery::BatchExecutionMode mode)
 
 bool ThreadQueryPrivate::first()
 {
-    QReadLocker locker(&m_stopFetchMutex);
-    if (m_stopFetch)
+    if (*m_stopFetch) {
         return false;
+    }
 
     bool ret = m_query->first();
     emit changePosition(m_query->at());
@@ -126,8 +123,7 @@ bool ThreadQueryPrivate::first()
 
 bool ThreadQueryPrivate::next()
 {
-    QReadLocker locker(&m_stopFetchMutex);
-    if (m_stopFetch)
+    if (*m_stopFetch)
         return false;
 
     bool ret = m_query->next();
@@ -137,8 +133,7 @@ bool ThreadQueryPrivate::next()
 
 bool ThreadQueryPrivate::seek(int index, bool relative)
 {
-    QReadLocker locker(&m_stopFetchMutex);
-    if (m_stopFetch)
+    if (*m_stopFetch)
         return false;
 
     bool ret = m_query->seek(index, relative);
@@ -148,8 +143,7 @@ bool ThreadQueryPrivate::seek(int index, bool relative)
 
 bool ThreadQueryPrivate::previous()
 {
-    QReadLocker locker(&m_stopFetchMutex);
-    if (m_stopFetch)
+    if (*m_stopFetch)
         return false;
 
     bool ret = m_query->previous();
@@ -159,8 +153,7 @@ bool ThreadQueryPrivate::previous()
 
 bool ThreadQueryPrivate::last()
 {
-    QReadLocker locker(&m_stopFetchMutex);
-    if (m_stopFetch)
+    if (*m_stopFetch)
         return false;
 
     bool ret = m_query->last();
@@ -173,11 +166,9 @@ void ThreadQueryPrivate::fetchAll()
     QList<QSqlRecord> records;
     while (m_query->next())
     {
-        {
-            QReadLocker locker(&m_stopFetchMutex);
-            if (m_stopFetch)
-                break;
-        }
+        if (*m_stopFetch)
+            break;
+
         records.append(m_query->record());
     }
     emit values(records);
@@ -185,19 +176,10 @@ void ThreadQueryPrivate::fetchAll()
 
 void ThreadQueryPrivate::fetchOne()
 {
-    QReadLocker locker(&m_stopFetchMutex);
-    if (m_stopFetch)
+    if (*m_stopFetch)
         return;
 
     emit value(m_query->record());
-}
-
-void ThreadQueryPrivate::stopFetch()
-{
-    QWriteLocker locker(&m_stopFetchMutex);
-    m_stopFetch = true;
-    QCoreApplication::removePostedEvents(this);
-    emit changePosition(-3);
 }
 
 void ThreadQueryPrivate::finish()
@@ -235,6 +217,11 @@ bool ThreadQueryPrivate::rollback()
     if (!ret) emit error(db.lastError());
 
     return ret;
+}
+
+void ThreadQueryPrivate::setStopFetch(volatile bool *stopFetch)
+{
+    m_stopFetch = stopFetch;
 }
 
 }}

@@ -222,6 +222,9 @@ private:
 
     //! Обёртка над QSqlQuery
     ThreadQueryPrivate *m_queryPrivate;
+
+    //! Флаг остановки получения значений
+    volatile bool m_stopFetch;
 };
 
 }}
