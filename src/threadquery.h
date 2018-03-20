@@ -156,8 +156,11 @@ public:
     void rollback();
 
 signals:
+    //! Сигнал об окончании подготовки запроса
+    void prepareDone();
+
     //! Сигнал об окончании выполнения операции в потоке
-    void executeDone(bool success);
+    void executeDone();
 
     //! Сигнал изменения номера позиции в потоке
     void changePosition(int pos);
@@ -176,9 +179,17 @@ protected:
     void run() Q_DECL_OVERRIDE;
 
 private slots:
+    //! Изменение номера позиции в потоке
+    void pChangePosition(int pos);
 
     //! Обработка ошибки
     void pError(QSqlError err);
+
+    //! Получение значений из потока
+    void pValues(const QList<QSqlRecord> &records);
+
+    //! Получение значения из потока
+    void pValue(const QSqlRecord &record);
 
 private:
     //! Мьютекс подготовки запроса

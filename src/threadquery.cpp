@@ -2,6 +2,7 @@
 
 #include <QtCore/QMutexLocker>
 #include <QtCore/QObject>
+#include <QtCore/QCoreApplication>
 #include <QMetaObject>
 
 #include "threadquery_p.h"
@@ -21,6 +22,7 @@ ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db): QThread()
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = query;
+    m_stopFetch = true;
     m_mutex.lock();
 
     this->start();
@@ -37,6 +39,7 @@ ThreadQuery::ThreadQuery(QSqlDatabase db): QThread()
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = "";
+    m_stopFetch = true;
     m_mutex.lock();
 
     this->start();
@@ -44,7 +47,10 @@ ThreadQuery::ThreadQuery(QSqlDatabase db): QThread()
 
 ThreadQuery::~ThreadQuery()
 {
-    delete m_queryPrivate;
+    m_stopFetch = true;
+    QCoreApplication::removePostedEvents(m_queryPrivate);
+    QMetaObject::invokeMethod(m_queryPrivate, "deleteLater",
+                              Qt::BlockingQueuedConnection);
     this->quit();
     this->wait();
 }
@@ -110,7 +116,6 @@ void ThreadQuery::prepare(const QString &query)
 {
     QMutexLocker locker(&m_mutex);
     m_queryText = query;
-
     QMetaObject::invokeMethod(m_queryPrivate, "prepare", Qt::QueuedConnection,
                               Q_ARG(QString, m_queryText));
 }
@@ -119,7 +124,6 @@ void ThreadQuery::execute(const QString &query)
 {
     QMutexLocker locker(&m_mutex);
     m_queryText = query;
-
     QMetaObject::invokeMethod(m_queryPrivate, "execute", Qt::QueuedConnection,
                               Q_ARG(QString, m_queryText));
 }
@@ -127,14 +131,12 @@ void ThreadQuery::execute(const QString &query)
 void ThreadQuery::execute()
 {
     QMutexLocker locker(&m_mutex);
-
     QMetaObject::invokeMethod(m_queryPrivate, "execute", Qt::QueuedConnection);
 }
 
 void ThreadQuery::executeBatch(QSqlQuery::BatchExecutionMode mode)
 {
     QMutexLocker locker(&m_mutex);
-
     QMetaObject::invokeMethod(m_queryPrivate, "executeBatch", Qt::QueuedConnection,
                               Q_ARG(QSqlQuery::BatchExecutionMode, mode));
 }
@@ -192,7 +194,7 @@ void ThreadQuery::stopFetch()
     QMutexLocker locker(&m_mutex);
     m_stopFetch = true;
 
-    emit changePosition(-3);
+    emit changePosition(ThreadQuery::StoppedFetch);
 }
 
 void ThreadQuery::fetchOne()
@@ -235,14 +237,15 @@ void ThreadQuery::run()
 {
     m_queryPrivate =  new ThreadQueryPrivate();
     m_queryPrivate->setStopFetch(&m_stopFetch);
-    m_stopFetch = true;
 
+    connect(m_queryPrivate, &ThreadQueryPrivate::prepareDone,
+            this, &ThreadQuery::prepareDone, Qt::DirectConnection);
 
     connect(m_queryPrivate, &ThreadQueryPrivate::executeDone,
             this, &ThreadQuery::executeDone, Qt::DirectConnection);
 
     connect(m_queryPrivate, &ThreadQueryPrivate::changePosition,
-            this, &ThreadQuery::changePosition, Qt::DirectConnection);
+            this, &ThreadQuery::pChangePosition, Qt::DirectConnection);
 
     qRegisterMetaType< QSqlError >( "QSqlError" );
     connect(m_queryPrivate, &ThreadQueryPrivate::error,
@@ -250,33 +253,54 @@ void ThreadQuery::run()
 
     qRegisterMetaType< QList<QSqlRecord> >( "QList<QSqlRecord>" );
     connect(m_queryPrivate, &ThreadQueryPrivate::values,
-            this, &ThreadQuery::values, Qt::DirectConnection);
+            this, &ThreadQuery::pValues, Qt::DirectConnection);
 
     qRegisterMetaType< QSqlRecord >( "QSqlRecord" );
     connect(m_queryPrivate, &ThreadQueryPrivate::value,
-            this, &ThreadQuery::value, Qt::DirectConnection);
+            this, &ThreadQuery::pValue, Qt::DirectConnection);
 
     QMetaObject::invokeMethod(
                 m_queryPrivate, "databaseConnect", Qt::QueuedConnection,
                 Q_ARG(QString, m_driverName), Q_ARG(QString, m_databaseName),
-                Q_ARG(QString, m_hostName), Q_ARG(int, m_port),
-                Q_ARG(QString, m_userName), Q_ARG(QString, m_password),
+                Q_ARG(QString, m_hostName),   Q_ARG(int, m_port),
+                Q_ARG(QString, m_userName),   Q_ARG(QString, m_password),
                 Q_ARG(QString, m_queryText));
 
     m_mutex.unlock();
 
-
     exec();
+}
+
+void ThreadQuery::pChangePosition(int pos)
+{
+    if (m_stopFetch)
+        return;
+
+    emit changePosition(pos);
 }
 
 void ThreadQuery::pError(QSqlError err)
 {
-    QMutexLocker locker(&m_mutex);
-
     m_lastError = err;
     emit error(err);
 
     qCWarning(lcSqlExtension) << err.text();
+}
+
+void ThreadQuery::pValues(const QList<QSqlRecord> &records)
+{
+    if (m_stopFetch)
+        return;
+
+    emit values(records);
+}
+
+void ThreadQuery::pValue(const QSqlRecord &record)
+{
+    if (m_stopFetch)
+        return;
+
+    emit value(record);
 }
 
 }}

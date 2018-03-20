@@ -26,26 +26,46 @@ public:
         : QObject()
     {
         m_db = db;
+        m_stopFetch = false;
     }
 
     //! Деструктор класса
     virtual ~ThreadQueryPool() {
-        QMutexLocker locker(&m_mutex);
-        qDeleteAll(m_freeQueue);
+        m_stopFetch = true;
     }
 
     //! Выдает многопоточный SQL запрос
     ThreadQueryItem<T> *acquire()
     {
+        if (m_stopFetch)
+            return NULL;
+
         m_mutex.lock();
         ThreadQueryItem<T> *query = (!m_freeQueue.isEmpty())
                 ? m_freeQueue.dequeue() : NULL;
         m_mutex.unlock();
 
-        if (query == NULL)
+        if (query == NULL) {
             query = new ThreadQueryItem<T>(this, m_db);
+            connect(this, &QObject::destroyed, query, &QObject::deleteLater);
+        } else {
+            query->m_busy = true;
+        }
 
         return query;
+    }
+
+    //! Помечает занятым многопоточный SQL запрос
+    bool acquire(ThreadQueryItem<T> *item) {
+        item->m_busy = true;
+        QMutexLocker locker(&m_mutex);
+        return m_freeQueue.removeOne(item);
+    }
+
+    //! Возвращает количество свободных Sql запросов
+    int freeItemCount() {
+        QMutexLocker locker(&m_mutex);
+        return m_freeQueue.count();
     }
 
     //! Дружественный класс
@@ -68,6 +88,8 @@ private:
 
     //! Очередь свободных многопоточных SQL запросов
     QQueue<ThreadQueryItem<T> *> m_freeQueue;
+
+    volatile bool m_stopFetch;
 };
 
 }}

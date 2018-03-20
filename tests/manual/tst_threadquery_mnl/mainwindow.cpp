@@ -27,16 +27,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_threadTest = new ThreadQuery();
 
-    connect(m_threadTest, &ThreadQuery::executeDone,
-            this, [=] (bool success) {
-        if (success) {
+    connect(m_threadTest, &ThreadQuery::executeDone, this, [=] () {
             ui->logPlainText->insertPlainText("Execute done.\n");
             m_threadTest->fetchAll();
             m_threadTest->first();
-        } else {
-            ui->logPlainText->insertPlainText("Execute error.\n");
-            ui->logPlainText->insertPlainText(m_threadTest->lastError().text());
-        }
     });
 
     connect(m_threadTest, &ThreadQuery::values,

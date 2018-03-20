@@ -38,13 +38,10 @@ void ThreadQueryPrivate::databaseConnect(
     db.setPassword(password);
     if (!db.open()) {
         emit error(db.lastError());
-        emit executeDone(false);
+    } else {
+        m_query = (query.isEmpty())
+                ? new QSqlQuery(db) : new QSqlQuery(query, db);
     }
-
-    if (query.isEmpty())
-        m_query = new QSqlQuery(db);
-    else
-        m_query = new QSqlQuery(query, db);
 }
 
 void ThreadQueryPrivate::bindValue(const QString &placeholder,
@@ -70,8 +67,11 @@ bool ThreadQueryPrivate::prepare(const QString &query)
     bool ret = m_query->prepare(query);
     if (!ret) {
         emit error(m_query->lastError());
-        emit executeDone(ret);
+    } else {
+        *m_stopFetch = false;
+        emit prepareDone();
     }
+
     return ret;
 }
 
@@ -79,11 +79,14 @@ bool ThreadQueryPrivate::execute()
 {
     QCoreApplication::removePostedEvents(this);
     bool ret = m_query->exec();
-    if (!ret) emit error(m_query->lastError());
 
-    *m_stopFetch = false;
+    if (!ret) {
+        emit error(m_query->lastError());
+    } else {
+        *m_stopFetch = false;
+        emit executeDone();
+    }
 
-    emit executeDone(ret);
     return ret;
 }
 
@@ -91,11 +94,14 @@ bool ThreadQueryPrivate::execute(const QString &query)
 {
     QCoreApplication::removePostedEvents(this);
     bool ret = m_query->exec(query);
-    if (!ret) emit error(m_query->lastError());
 
-    *m_stopFetch = false;
+    if (!ret) {
+        emit error(m_query->lastError());
+    } else {
+        *m_stopFetch = false;
+        emit executeDone();
+    }
 
-    emit executeDone(ret);
     return ret;
 }
 
@@ -104,9 +110,13 @@ bool ThreadQueryPrivate::executeBatch(QSqlQuery::BatchExecutionMode mode)
     QCoreApplication::removePostedEvents(this);
     bool ret = m_query->execBatch(mode);
 
-    *m_stopFetch = false;
+    if (!ret) {
+        emit error(m_query->lastError());
+    } else {
+        *m_stopFetch = false;
+        emit executeDone();
+    }
 
-    emit executeDone(ret);
     return ret;
 }
 

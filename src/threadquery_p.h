@@ -94,8 +94,11 @@ public slots:
     bool rollback();
 
 signals:
+    //! Сигнал об окончании подготовки запроса
+    void prepareDone();
+
     //! Сигнал об окончании выполнения операции
-    void executeDone(bool success);
+    void executeDone();
 
     //! Возвращает номер позиции
     void changePosition(int pos);

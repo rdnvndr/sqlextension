@@ -19,10 +19,17 @@ class ThreadQueryItem : public T
 {
 
 public:
+    //! Деструктор класса
+    virtual ~ThreadQueryItem() {
+        if (m_pool && !m_busy)
+            m_pool->acquire(this);
+    }
+
     //! Возвращает в пул многопоточных SQL запросов
     void release() {
-        if (m_pool) {
+        if (m_pool && m_busy) {
             m_new = false;
+            m_busy = false;
             m_pool->release(this);
         }
     }
@@ -41,6 +48,7 @@ private:
     {
          m_pool  = pool;
          m_new = true;
+         m_busy = true;
     }
 
     //! Запрещает конструктор копирования
@@ -57,7 +65,10 @@ private:
     QPointer< ThreadQueryPool<T> > m_pool;
 
     //! Флаг нового многопоточного SQL запроса
-    bool m_new;
+    volatile bool m_new;
+
+    //! Флаг занятости многопоточного SQL запроса
+    volatile bool m_busy;
 };
 
 }}
