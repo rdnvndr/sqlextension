@@ -42,6 +42,7 @@ Product {
     
     Probe {
         id: version
+        property stringList targetOS: qbs.targetOS
         property string prjDir: project.sourceDirectory
         property string prdDir: product.sourceDirectory
         property int hack: {
@@ -51,11 +52,11 @@ Product {
         configure: {
             var cmd;
             var args;
-            if (qbs.targetOS.contains("windows")) {
+            if (targetOS.contains("windows")) {
                 cmd = "cmd";
                 args = ["/c", prjDir+"/scripts/version.bat"];
             }
-            if (qbs.targetOS.contains("linux")) {
+            if (targetOS.contains("linux")) {
                 cmd = "/usr/bin/sh";
                 args = ["-c", prjDir+"/scripts/version.sh"];
             }
