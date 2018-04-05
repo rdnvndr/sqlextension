@@ -29,8 +29,8 @@ MainProduct {
        multiplex: true
        inputs: ["doxyconf"]
        outputFileTags: ["docs"]
-       outputArtifacts: [{ filePath: product.docName + ".qch" },
-                         { filePath: product.docName + "/" }]
+       outputArtifacts: [{filePath: product.docName + ".qch", fileTags: ["docs"]},
+                         {filePath: product.docName + "/", fileTags: ["docs"]}]
        prepare: {
            var cmd = new JavaScriptCommand ();
            cmd.description = "generating api documentation";
