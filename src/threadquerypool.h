@@ -3,6 +3,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QQueue>
+#include <QtCore/QSemaphore>
 #include <QtSql/QSqlDatabase>
 
 #include "threadquery.h"
@@ -22,11 +23,13 @@ class SQLEXTENSIONLIB ThreadQueryPool : public QObject
 
 public:
     //! Конструктор класса
-    explicit ThreadQueryPool(QSqlDatabase db = QSqlDatabase::database())
+    explicit ThreadQueryPool(QSqlDatabase db = QSqlDatabase::database(),
+                             uint maxCount = 1000)
         : QObject()
     {
         m_db = db;
         m_stopFetch = false;
+        m_semaphore.release(maxCount);
     }
 
     //! Деструктор класса
@@ -40,6 +43,7 @@ public:
         if (m_stopFetch)
             return NULL;
 
+        m_semaphore.acquire();
         m_mutex.lock();
         ThreadQueryItem<T> *query = (!m_freeQueue.isEmpty())
                 ? m_freeQueue.dequeue() : NULL;
@@ -57,15 +61,31 @@ public:
 
     //! Помечает занятым многопоточный SQL запрос
     bool acquire(ThreadQueryItem<T> *item) {
-        item->m_busy = true;
         QMutexLocker locker(&m_mutex);
-        return m_freeQueue.removeOne(item);
+        if (m_freeQueue.removeOne(item)) {
+            item->m_busy = true;
+            m_semaphore.acquire();
+            return true;
+        }
+        return false;
     }
 
-    //! Возвращает количество свободных Sql запросов
-    int freeItemCount() {
+    //! Удаляет многопоточный SQL запрос
+    void remove(ThreadQueryItem<T> *item) {
+        QMutexLocker locker(&m_mutex);
+        if (!m_freeQueue.removeOne(item))
+            m_semaphore.release();
+    }
+
+    //! Возвращает количество свободных SQL запросов
+    int freeCount() {
         QMutexLocker locker(&m_mutex);
         return m_freeQueue.count();
+    }
+
+    //! Возвращает возможное количество SQL запросов
+    int count() {
+        return m_semaphore.available();
     }
 
     //! Дружественный класс
@@ -75,11 +95,16 @@ private:
     //! Освобождает многопоточный SQL запрос
     void release(ThreadQueryItem<T> *item)
     {
-        QMutexLocker locker(&m_mutex);
+        m_mutex.lock();
         m_freeQueue.enqueue(item);
+        m_semaphore.release();
+        m_mutex.unlock();
     }
 
 private:
+    //! Количество многопоточных SQL запросов
+    QSemaphore m_semaphore;
+
     //! Мьютекс для работы с очередью
     QMutex m_mutex;
 

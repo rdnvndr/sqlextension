@@ -157,9 +157,13 @@ void MainWindow::onActionConnect()
 void MainWindow::onShowPool()
 {
     ui->logPlainText->appendPlainText(
-                QString("\nПул менеджеров: %1\nПул запросов: %2\n")
-                .arg(m_threadManagerPool->freeItemCount())
-                .arg(m_threadPool->freeItemCount()));
+                QString("\nПул менеджеров: %1 из %2"
+                        "\nПул запросов: %3 из %4\n")
+                .arg(m_threadManagerPool->freeCount())
+                .arg(m_threadManagerPool->count())
+                .arg(m_threadPool->freeCount())
+                .arg(m_threadPool->count())
+    );
 
 }
 

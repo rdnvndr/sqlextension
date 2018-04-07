@@ -21,8 +21,8 @@ class ThreadQueryItem : public T
 public:
     //! Деструктор класса
     virtual ~ThreadQueryItem() {
-        if (m_pool && !m_busy)
-            m_pool->acquire(this);
+        if (m_pool)
+            m_pool->remove(this);
     }
 
     //! Возвращает в пул многопоточных SQL запросов
