@@ -158,56 +158,46 @@ void DialogConnect::setLockDialog(bool locked)
 void DialogConnect::startConnect()
 {
     setLockDialog(true);
-    if (QSqlDatabase::database().isOpen()) {
-        QSqlDatabase::database().close();
-        QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+
+    if (driverName() == "MSSQL"){
+        m_threadConnect->setDriverName("QODBC");
+
+        m_threadConnect->setDatabaseName(
+                    QString("%1;%2;%3").arg("DRIVER={SQL Server}")
+                    .arg("DATABASE=" + databaseName())
+                    .arg("SERVER=" + hostName()));
+    } else if (driverName() == "QOCI") {
+        m_threadConnect->setDriverName("QOCI");
+
+        m_threadConnect->setDatabaseName(
+                    QString("(DESCRIPTION = "
+                            "(ADDRESS_LIST = "
+                            "(ADDRESS = "
+                            "(PROTOCOL = TCP)"
+                            "(HOST = %1)"
+                            "(PORT = %2)"
+                            ")"
+                            ")"
+                            "(CONNECT_DATA ="
+                            "(SERVER = DEDICATED)"
+                            "(SID =%3)"
+                            ")"
+                            ")")
+                    .arg(hostName())
+                    .arg(port())
+                    .arg(databaseName()));
+    } else {
+        m_threadConnect->setDriverName(driverName());
+        m_threadConnect->setDatabaseName(databaseName());
+        m_threadConnect->setHostName(hostName());
     }
 
-    {
-        QSqlDatabase db;
+    m_threadConnect->setPort(port());
+    m_threadConnect->setUserName(userName());
+    m_threadConnect->setPassword(password());
 
-        if (driverName() == "MSSQL"){
-            db = QSqlDatabase::addDatabase("QODBC");
+    m_threadConnect->start();
 
-            db.setDatabaseName(
-                        QString("%1;%2;%3").arg("DRIVER={SQL Server}")
-                        .arg("DATABASE=" + databaseName())
-                        .arg("SERVER=" + hostName()));
-            db.setPort(port());
-            db.setUserName(userName());
-            db.setPassword(password());
-        } else if (driverName() == "QOCI") {
-            db = QSqlDatabase::addDatabase("QOCI");
-
-            db.setDatabaseName(
-                        QString("(DESCRIPTION = "
-                                "(ADDRESS_LIST = "
-                                "(ADDRESS = "
-                                "(PROTOCOL = TCP)"
-                                "(HOST = %1)"
-                                "(PORT = %2)"
-                                ")"
-                                ")"
-                                "(CONNECT_DATA ="
-                                "(SERVER = DEDICATED)"
-                                "(SID =%3)"
-                                ")"
-                                ")")
-                        .arg(hostName())
-                        .arg(port())
-                        .arg(databaseName()));
-        } else {
-            db = QSqlDatabase::addDatabase(driverName());
-            db.setDatabaseName(databaseName());
-            db.setHostName(hostName());
-        }
-
-        db.setPort(port());
-        db.setUserName(userName());
-        db.setPassword(password());
-
-        m_threadConnect->start();
-    }
 }
 
 void DialogConnect::finishConnect(QString result)
