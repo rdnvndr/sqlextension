@@ -44,69 +44,33 @@ void ThreadConnect::run()
         QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
 }
 
-QString ThreadConnect::driverName() const
-{
-    return m_driverName;
-}
-
 void ThreadConnect::setDriverName(const QString &driverName)
 {
-    QMutexLocker locker(&m_mutex);
     m_driverName = driverName;
 }
 
-QString ThreadConnect::databaseName() const
-{
-    return m_databaseName;
-}
-
 void ThreadConnect::setDatabaseName(const QString &databaseName)
-{
-    QMutexLocker locker(&m_mutex);
+{   
     m_databaseName = databaseName;
 }
 
-QString ThreadConnect::hostName() const
-{
-    return m_hostName;
-}
-
 void ThreadConnect::setHostName(const QString &hostName)
-{
-    QMutexLocker locker(&m_mutex);
+{   
     m_hostName = hostName;
-}
-
-int ThreadConnect::port() const
-{
-    return m_port;
 }
 
 void ThreadConnect::setPort(int port)
 {
-    QMutexLocker locker(&m_mutex);
     m_port = port;
 }
 
-QString ThreadConnect::userName() const
-{
-    return m_userName;
-}
-
 void ThreadConnect::setUserName(const QString &userName)
-{
-    QMutexLocker locker(&m_mutex);
+{   
     m_userName = userName;
 }
 
-QString ThreadConnect::password() const
-{
-    return m_password;
-}
-
 void ThreadConnect::setPassword(const QString &password)
-{
-    QMutexLocker locker(&m_mutex);
+{   
     m_password = password;
 }
 

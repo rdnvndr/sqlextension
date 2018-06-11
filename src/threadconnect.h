@@ -16,40 +16,22 @@ public:
     explicit ThreadConnect(QObject *parent = NULL);
 
     //! Запуск соединения в потоке
-    void run() Q_DECL_OVERRIDE;
-
-    //! Возвращает имя драйвера
-    QString driverName() const;
+    void run() override;
 
     //! Устанавливает имя драйвера
     void setDriverName(const QString &driverName);
 
-    //! Возвращает имя базы данных
-    QString databaseName() const;
-
     //! Устанавливает имя базы данных
     void setDatabaseName(const QString &databaseName);
-
-    //! Возвращает имя хоста
-    QString hostName() const;
 
     //! Устанавливает имя хоста
     void setHostName(const QString &hostName);
 
-    //! Возвращает номер порта
-    int port() const;
-
     //! Устанавливает номер порта
     void setPort(int port);
 
-    //! Возвращает имя пользователя
-    QString userName() const;
-
     //! Устанавливает имя пользователя
     void setUserName(const QString &userName);
-
-    //! Возвращает пароль
-    QString password() const;
 
     //! Устанавливает пароль
     void setPassword(const QString &password);
@@ -76,9 +58,6 @@ private:
 
     //! Пароль
     QString m_password;
-
-    //! Мьютекс доступа к параметрам соединения
-    QMutex  m_mutex;
 };
 
 }}
