@@ -199,6 +199,10 @@ DsvStream::State DsvStream::step()
                }
                return LineStart;
            }
+           return End;
+
+       case End:
+           break;
 
        }
 
