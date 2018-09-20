@@ -33,7 +33,7 @@ class  UuidTreeModel : public QAbstractItemModel
 
 public:
     //! Конструктор модели
-    UuidTreeModel(UuidTreeData *data, QObject *parent = 0);
+    UuidTreeModel(UuidTreeData *data, QObject *parent = nullptr);
 
     //! Деструктор модели
     ~UuidTreeModel();

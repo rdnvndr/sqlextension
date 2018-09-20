@@ -5,7 +5,6 @@
 #include <QtCore/QPointer>
 
 #include "threadquery.h"
-#include "threadquerypool.h"
 
 namespace RTPTechGroup {
 namespace SqlExtension {

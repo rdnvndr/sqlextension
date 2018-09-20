@@ -7,7 +7,6 @@
 #include <QtSql/QSqlDatabase>
 
 #include "threadquery.h"
-#include "threadqueryitem.h"
 
 namespace RTPTechGroup {
 namespace SqlExtension {
