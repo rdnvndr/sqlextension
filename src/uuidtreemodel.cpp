@@ -44,7 +44,7 @@ bool UuidTreeModel::setData(const QModelIndex &index, const QVariant &value,
 Qt::ItemFlags UuidTreeModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
-        return 0;
+        return Qt::NoItemFlags;
     Qt::ItemFlags fl = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
     if (m_data->isEditable(*static_cast<QString*>(
                                index.internalPointer()), index.column()))
@@ -58,7 +58,7 @@ QVariant UuidTreeModel::headerData(int section, Qt::Orientation orientation,
                                       int role) const
 {
     if ( orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-        return m_data->data( 0, section );
+        return m_data->data(QString(), section );
     }
     return QVariant();
 }
@@ -68,7 +68,7 @@ bool UuidTreeModel::setHeaderData(int section, Qt::Orientation orientation,
 {
     if (role != Qt::EditRole || orientation != Qt::Horizontal)
         return false;
-    return m_data->setData(0, section, value);
+    return m_data->setData(QString(), section, value);
 }
 
 QModelIndex UuidTreeModel::index(int row, int column,
@@ -79,7 +79,7 @@ QModelIndex UuidTreeModel::index(int row, int column,
 
     UuidTreeNode* parentId;
     if (!parent.isValid())
-        parentId = NULL;
+        parentId = nullptr;
     else
         parentId = static_cast<UuidTreeNode*>(parent.internalPointer());
 

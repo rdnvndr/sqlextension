@@ -9,7 +9,7 @@ namespace SqlExtension {
 
 ThreadQueryPrivate::ThreadQueryPrivate()
 {
-    m_stopFetch = NULL;
+    m_stopFetch = nullptr;
 }
 
 ThreadQueryPrivate::~ThreadQueryPrivate()

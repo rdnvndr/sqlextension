@@ -45,7 +45,7 @@ UuidTreeNode *SqlTreeData::createNode(QString id) const
                    );
 
         if (!query.next())
-            return 0;
+            return nullptr;
 
         n = new UuidTreeNode;
         n->id = query.value(0).toString();

@@ -81,7 +81,7 @@ UuidTreeNode *UuidTreeData::parent(QString id) const
 {
     UuidTreeNode* n = node(id);
     if (!n)
-        return NULL;
+        return nullptr;
     return node(n->parent);
 }
 
@@ -105,7 +105,7 @@ UuidTreeNode *UuidTreeData::child(QString parent, int index) const
 {
     UuidTreeNode* n = node(parent);
     if (!n){
-        return NULL;
+        return nullptr;
     }
     return node(n->children.value(index));
 }
