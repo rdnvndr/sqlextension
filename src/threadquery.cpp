@@ -238,6 +238,8 @@ void ThreadQuery::run()
     m_queryPrivate =  new ThreadQueryPrivate();
     m_queryPrivate->setStopFetch(&m_stopFetch);
 
+    qRegisterMetaType<QSql::ParamType>( "QSql::ParamType" );
+
     connect(m_queryPrivate, &ThreadQueryPrivate::prepareDone,
             this, &ThreadQuery::prepareDone, Qt::DirectConnection);
 

@@ -23,11 +23,9 @@ class ThreadQueryPrivate;
 \code
     ThreadQuery *threadQuery = new ThreadQuery();
 
-    //! Обработка окончания выполнение запроса
+    // Обработка окончания выполнение запроса
     connect(threadQuery, &ThreadQuery::executeDone, [=] (bool success) {
-        if (success) {
-            threadQuery->first();
-        }
+        threadQuery->first();
     });
 
     //! Обработка выбора записи
@@ -36,14 +34,14 @@ class ThreadQueryPrivate;
             threadQuery->fetchOne();
     });
 
-    //! Обработка получения значений
+    // Обработка получения значений
     connect(threadQuery, &ThreadQuery::value, [=] (const QSqlRecord &value)
     {
        qDebug() << QString("Value: %1 \n").arg(value.value(0).toString()));
        threadQuery->next();
     });
 
-    //! Начало выполнения запроса
+    // Начало выполнения запроса
     threadQuery->prepare("SELECT * FROM TEST");
     threadQuery->execute();
 \endcode
