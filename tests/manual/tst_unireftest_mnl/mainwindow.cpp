@@ -136,9 +136,9 @@ void MainWindow::onActionConnect()
 
     QSqlDatabase db = QSqlDatabase::database();
     if (db.isOpen()) {
-        if (m_threadPool != NULL)
+        if (m_threadPool != nullptr)
             m_threadPool->deleteLater();
-        if (m_threadManagerPool != NULL)
+        if (m_threadManagerPool != nullptr)
             m_threadManagerPool->deleteLater();
 
         this->m_threadManagerPool = new ThreadQueryPool<QueryManagerThread>(db);
@@ -206,9 +206,9 @@ void MainWindow::addToCache()
 
 void MainWindow::closeEvent(QCloseEvent *)
 {
-    if (m_threadPool != NULL)
+    if (m_threadPool != nullptr)
         m_threadPool->deleteLater();
-    if (m_threadManagerPool != NULL)
+    if (m_threadManagerPool != nullptr)
         m_threadManagerPool->deleteLater();
     if (QSqlDatabase::contains(QSqlDatabase::defaultConnection)) {
         QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
