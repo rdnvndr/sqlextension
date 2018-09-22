@@ -115,6 +115,8 @@ QMap<QString, QVariant> ThreadQuery::boundValues()
 void ThreadQuery::prepare(const QString &query)
 {
     QMutexLocker locker(&m_mutex);
+    m_boundTypes.clear();
+    m_boundValues.clear();
     m_queryText = query;
     QMetaObject::invokeMethod(m_queryPrivate, "prepare", Qt::QueuedConnection,
                               Q_ARG(QString, m_queryText));
@@ -212,6 +214,8 @@ void ThreadQuery::finish()
 void ThreadQuery::clear()
 {
     QMutexLocker locker(&m_mutex);
+    m_boundTypes.clear();
+    m_boundValues.clear();
     QMetaObject::invokeMethod(m_queryPrivate, "clear", Qt::QueuedConnection);
 }
 
