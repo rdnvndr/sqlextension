@@ -5,6 +5,7 @@
 #include <QtCore/QMutex>
 #include <QtCore/QObject>
 #include <QtCore/QMap>
+#include <QtCore/QPointer>
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
@@ -110,6 +111,12 @@ public:
     //! Возвращает последнюю ошибку
     QSqlError lastError() const;
 
+    //! Начинает блок запросов
+    void begin();
+
+    //! Заканчивает блок запросов
+    void end();
+
 // Позиционирование на записи
      //! Перейти к первой записи
     void first();
@@ -126,7 +133,7 @@ public:
     //! Перейти к последней записи
     void last();
 
-// Получение значений    
+// Получение значений
     //! Вызывает получение всех значений в потоке
     void fetchAll();
 
@@ -234,6 +241,9 @@ private:
 
     //! Флаг остановки получения значений
     volatile bool m_stopFetch;
+
+    //! Хранит поток с блоком запросов
+    QPointer<QThread> m_blockThread;
 };
 
 }}

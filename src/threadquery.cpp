@@ -23,6 +23,7 @@ ThreadQuery::ThreadQuery(const QString &query, QSqlDatabase db): QThread()
     m_forwardOnly = false;
     m_queryText = query;
     m_stopFetch = true;
+    m_blockThread = nullptr;
     m_mutex.lock();
 
     this->start();
@@ -40,6 +41,7 @@ ThreadQuery::ThreadQuery(QSqlDatabase db): QThread()
     m_forwardOnly = false;
     m_queryText = "";
     m_stopFetch = true;
+    m_blockThread = nullptr;
     m_mutex.lock();
 
     this->start();
@@ -58,7 +60,7 @@ ThreadQuery::~ThreadQuery()
 void ThreadQuery::setNumericalPrecisionPolicy(
         QSql::NumericalPrecisionPolicy precisionPolicy)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_precisionPolicy = precisionPolicy;
     QMetaObject::invokeMethod(
                 m_queryPrivate, "setNumericalPrecisionPolicy", Qt::QueuedConnection,
@@ -67,13 +69,13 @@ void ThreadQuery::setNumericalPrecisionPolicy(
 
 QSql::NumericalPrecisionPolicy ThreadQuery::numericalPrecisionPolicy()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     return m_precisionPolicy;
 }
 
 void ThreadQuery::setForwardOnly(bool forward)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_forwardOnly = forward;
     QMetaObject::invokeMethod(
                 m_queryPrivate, "setForwardOnly", Qt::QueuedConnection,
@@ -82,14 +84,14 @@ void ThreadQuery::setForwardOnly(bool forward)
 
 bool ThreadQuery::isForwardOnly()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     return m_forwardOnly;
 }
 
 void ThreadQuery::bindValue(const QString &placeholder, const QVariant &val,
                             QSql::ParamType paramType)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_boundValues.insert(placeholder, val);
     m_boundTypes.insert(placeholder, paramType);
 
@@ -102,19 +104,19 @@ void ThreadQuery::bindValue(const QString &placeholder, const QVariant &val,
 
 QVariant ThreadQuery::boundValue(const QString &placeholder)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     return m_boundValues.value(placeholder);
 }
 
 QMap<QString, QVariant> ThreadQuery::boundValues()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     return m_boundValues;
 }
 
 void ThreadQuery::prepare(const QString &query)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_boundTypes.clear();
     m_boundValues.clear();
     m_queryText = query;
@@ -124,7 +126,7 @@ void ThreadQuery::prepare(const QString &query)
 
 void ThreadQuery::execute(const QString &query)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_queryText = query;
     QMetaObject::invokeMethod(m_queryPrivate, "execute", Qt::QueuedConnection,
                               Q_ARG(QString, m_queryText));
@@ -132,20 +134,20 @@ void ThreadQuery::execute(const QString &query)
 
 void ThreadQuery::execute()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "execute", Qt::QueuedConnection);
 }
 
 void ThreadQuery::executeBatch(QSqlQuery::BatchExecutionMode mode)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "executeBatch", Qt::QueuedConnection,
                               Q_ARG(QSqlQuery::BatchExecutionMode, mode));
 }
 
 QString ThreadQuery::lastQuery()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     return m_queryText;
 }
 
@@ -154,46 +156,58 @@ QSqlError ThreadQuery::lastError() const
     return m_lastError;
 }
 
+void ThreadQuery::begin()
+{
+    m_mutex.lock();
+    m_blockThread = QThread::currentThread();
+}
+
+void ThreadQuery::end()
+{
+    m_mutex.unlock();
+    m_blockThread = nullptr;
+}
+
 void ThreadQuery::first()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "first", Qt::QueuedConnection);
 }
 
 void ThreadQuery::next()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "next", Qt::QueuedConnection);
 }
 
 void ThreadQuery::seek(int index, bool relative)
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "seek", Qt::QueuedConnection,
                               Q_ARG(int, index), Q_ARG(bool, relative));
 }
 
 void ThreadQuery::previous()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "previous", Qt::QueuedConnection);
 }
 
 void ThreadQuery::last()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "last", Qt::QueuedConnection);
 }
 
 void ThreadQuery::fetchAll()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "fetchAll", Qt::QueuedConnection);
 }
 
 void ThreadQuery::stopFetch()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_stopFetch = true;
 
     emit changePosition(ThreadQuery::StoppedFetch);
@@ -201,19 +215,19 @@ void ThreadQuery::stopFetch()
 
 void ThreadQuery::fetchOne()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "fetchOne", Qt::QueuedConnection);
 }
 
 void ThreadQuery::finish()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "finish", Qt::QueuedConnection);
 }
 
 void ThreadQuery::clear()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_boundTypes.clear();
     m_boundValues.clear();
     QMetaObject::invokeMethod(m_queryPrivate, "clear", Qt::QueuedConnection);
@@ -221,19 +235,19 @@ void ThreadQuery::clear()
 
 void ThreadQuery::transaction()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "transaction", Qt::QueuedConnection);
 }
 
 void ThreadQuery::commit()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "commit", Qt::QueuedConnection);
 }
 
 void ThreadQuery::rollback()
 {
-    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "rollback", Qt::QueuedConnection);
 }
 
