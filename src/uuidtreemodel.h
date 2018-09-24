@@ -1,11 +1,13 @@
 #ifndef UUIDTREEMODEL_H
 #define UUIDTREEMODEL_H
 
+#include "sqlextensionglobal.h"
+
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
 
-class  UuidTreeData;
+class UuidTreeData;
 
 //! Класс модель дерева с UUID идентификатором
 /*! Данный класс предназначен для создания дерева на основе, UUID идентификаторов.
@@ -27,9 +29,9 @@ class  UuidTreeData;
     \endcode
 
 */
-class  UuidTreeModel : public QAbstractItemModel
+class SQLEXTENSIONLIB UuidTreeModel : public QAbstractItemModel
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
     //! Конструктор модели
@@ -39,7 +41,7 @@ public:
     ~UuidTreeModel();
 
     //! Возвращает хранимые данные
-	QVariant data(const QModelIndex &index, int role) const;
+    QVariant data(const QModelIndex &index, int role) const;
 
     //! Устанавливает значение для указанной записи
     bool setData(const QModelIndex &index, const QVariant &value, int role);

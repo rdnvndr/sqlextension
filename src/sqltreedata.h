@@ -5,10 +5,11 @@
 #include <QSqlDatabase>
 #include <QtSql>
 
+#include "sqlextensionglobal.h"
 #include "uuidtreedata.h"
 
 //! Класс узла дерева
-class  SqlTreeData : public UuidTreeData
+class SQLEXTENSIONLIB SqlTreeData : public UuidTreeData
 {
 	Q_OBJECT
 

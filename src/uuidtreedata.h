@@ -1,6 +1,8 @@
 #ifndef UUIDTREEDATA_H
 #define UUIDTREEDATA_H
 
+#include "sqlextensionglobal.h"
+
 #include <QObject>
 #include <QCache>
 #include <QStringList>
@@ -37,7 +39,7 @@ struct UuidTreeNode
     \endcode
 
 */
-class  UuidTreeData : public QObject
+class SQLEXTENSIONLIB UuidTreeData : public QObject
 {
     Q_OBJECT
 

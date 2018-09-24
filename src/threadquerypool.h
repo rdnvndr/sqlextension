@@ -12,13 +12,12 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-
 template<class T>
 class ThreadQueryItem;
 
 //! Класс пула многопоточных SQL запросов
 template<class T>
-class SQLEXTENSIONLIB ThreadQueryPool : public QObject
+class ThreadQueryPool : public QObject
 {
 
 public:
