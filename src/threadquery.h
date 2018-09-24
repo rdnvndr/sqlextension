@@ -243,9 +243,6 @@ private:
     //! Обёртка над QSqlQuery
     ThreadQueryPrivate *m_queryPrivate;
 
-    //! Флаг остановки получения значений
-    volatile bool m_stopFetch;
-
     //! Хранит поток с блоком запросов
     QPointer<QThread> m_blockThread;
 

@@ -9,7 +9,7 @@ namespace SqlExtension {
 
 ThreadQueryPrivate::ThreadQueryPrivate()
 {
-    m_stopFetch = nullptr;
+
 }
 
 ThreadQueryPrivate::~ThreadQueryPrivate()
@@ -68,7 +68,6 @@ bool ThreadQueryPrivate::prepare(const QString &query)
     if (!ret) {
         emit error(QUuid(), m_query->lastError());
     } else {
-        *m_stopFetch = false;
         emit prepareDone();
     }
 
@@ -77,14 +76,11 @@ bool ThreadQueryPrivate::prepare(const QString &query)
 
 bool ThreadQueryPrivate::execute(const QUuid &queryUuid)
 {
-    QCoreApplication::removePostedEvents(this);
-    m_queryUuid = queryUuid;
     bool ret = m_query->exec();
 
     if (!ret) {
         emit error(queryUuid, m_query->lastError());
     } else {
-        *m_stopFetch = false;
         emit executeDone(queryUuid);
     }
 
@@ -93,14 +89,11 @@ bool ThreadQueryPrivate::execute(const QUuid &queryUuid)
 
 bool ThreadQueryPrivate::execute(const QUuid &queryUuid, const QString &query)
 {
-    QCoreApplication::removePostedEvents(this);
-    m_queryUuid = queryUuid;
     bool ret = m_query->exec(query);
 
     if (!ret) {
         emit error(queryUuid, m_query->lastError());
     } else {
-        *m_stopFetch = false;
         emit executeDone(queryUuid);
     }
 
@@ -110,14 +103,11 @@ bool ThreadQueryPrivate::execute(const QUuid &queryUuid, const QString &query)
 bool ThreadQueryPrivate::executeBatch(const QUuid &queryUuid,
                                       QSqlQuery::BatchExecutionMode mode)
 {
-    QCoreApplication::removePostedEvents(this);
-    m_queryUuid = queryUuid;
     bool ret = m_query->execBatch(mode);
 
     if (!ret) {
         emit error(queryUuid, m_query->lastError());
     } else {
-        *m_stopFetch = false;
         emit executeDone(queryUuid);
     }
 
@@ -126,13 +116,6 @@ bool ThreadQueryPrivate::executeBatch(const QUuid &queryUuid,
 
 bool ThreadQueryPrivate::first(const QUuid &queryUuid)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return false;
-
-    if (*m_stopFetch) {
-        return false;
-    }
-
     bool ret = m_query->first();
     emit changePosition(queryUuid, m_query->at());
     return ret;
@@ -140,12 +123,6 @@ bool ThreadQueryPrivate::first(const QUuid &queryUuid)
 
 bool ThreadQueryPrivate::next(const QUuid &queryUuid)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return false;
-
-    if (*m_stopFetch)
-        return false;
-
     bool ret = m_query->next();
     emit changePosition(queryUuid, m_query->at());
     return ret;
@@ -153,12 +130,6 @@ bool ThreadQueryPrivate::next(const QUuid &queryUuid)
 
 bool ThreadQueryPrivate::seek(const QUuid &queryUuid, int index, bool relative)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return false;
-
-    if (*m_stopFetch)
-        return false;
-
     bool ret = m_query->seek(index, relative);
     emit changePosition(queryUuid, m_query->at());
     return ret;
@@ -166,12 +137,6 @@ bool ThreadQueryPrivate::seek(const QUuid &queryUuid, int index, bool relative)
 
 bool ThreadQueryPrivate::previous(const QUuid &queryUuid)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return false;
-
-    if (*m_stopFetch)
-        return false;
-
     bool ret = m_query->previous();
     emit changePosition(queryUuid, m_query->at());
     return ret;
@@ -179,12 +144,6 @@ bool ThreadQueryPrivate::previous(const QUuid &queryUuid)
 
 bool ThreadQueryPrivate::last(const QUuid &queryUuid)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return false;
-
-    if (*m_stopFetch)
-        return false;
-
     bool ret = m_query->last();
     emit changePosition(queryUuid, m_query->at());
     return ret;
@@ -192,15 +151,9 @@ bool ThreadQueryPrivate::last(const QUuid &queryUuid)
 
 void ThreadQueryPrivate::fetchAll(const QUuid &queryUuid)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return;
-
     QList<QSqlRecord> records;
     while (m_query->next())
     {
-        if (*m_stopFetch)
-            break;
-
         records.append(m_query->record());
     }
     emit values(queryUuid, records);
@@ -208,28 +161,16 @@ void ThreadQueryPrivate::fetchAll(const QUuid &queryUuid)
 
 void ThreadQueryPrivate::fetchOne(const QUuid &queryUuid)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return;
-
-    if (*m_stopFetch)
-        return;
-
     emit value(queryUuid, m_query->record());
 }
 
 void ThreadQueryPrivate::finish(const QUuid &queryUuid)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return;
-
     m_query->finish();
 }
 
 void ThreadQueryPrivate::clear(const QUuid &queryUuid)
 {
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return;
-
     m_query->clear();
 }
 
@@ -258,11 +199,6 @@ bool ThreadQueryPrivate::rollback()
     if (!ret) emit error(QUuid(), db.lastError());
 
     return ret;
-}
-
-void ThreadQueryPrivate::setStopFetch(volatile bool *stopFetch)
-{
-    m_stopFetch = stopFetch;
 }
 
 }}

@@ -24,9 +24,6 @@ public:
     //! Деструктор класса
     virtual ~ThreadQueryPrivate();
 
-    //! Устанавливает флаг остановки получения значений
-    void setStopFetch(volatile bool *stopFetch);
-
 public slots:
     //! Устанавливает соединение
     void databaseConnect(const QString &driverName, const QString &databaseName,
@@ -122,12 +119,6 @@ private:
 
     //! Соединение с БД
     QString m_connectionName;
-
-    //! Флаг остановки получения значений
-    volatile bool *m_stopFetch;
-
-    //! Идентификатор запроса
-    QUuid m_queryUuid;
 };
 
 }}

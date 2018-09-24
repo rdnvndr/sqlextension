@@ -22,7 +22,6 @@ ThreadQuery::ThreadQuery(const QString &query, const QSqlDatabase &db): QThread(
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = query;
-    m_stopFetch = true;
     m_blockThread = nullptr;
     m_mutex.lock();
 
@@ -40,7 +39,6 @@ ThreadQuery::ThreadQuery(const QSqlDatabase &db): QThread()
     m_precisionPolicy = db.numericalPrecisionPolicy();
     m_forwardOnly = false;
     m_queryText = "";
-    m_stopFetch = true;
     m_blockThread = nullptr;
     m_mutex.lock();
 
@@ -49,7 +47,6 @@ ThreadQuery::ThreadQuery(const QSqlDatabase &db): QThread()
 
 ThreadQuery::~ThreadQuery()
 {
-    m_stopFetch = true;
     QCoreApplication::removePostedEvents(m_queryPrivate);
     QMetaObject::invokeMethod(m_queryPrivate, "deleteLater",
                               Qt::BlockingQueuedConnection);
@@ -183,6 +180,9 @@ void ThreadQuery::end()
 void ThreadQuery::first(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QMetaObject::invokeMethod(m_queryPrivate, "first", Qt::QueuedConnection,
                               Q_ARG(QUuid, queryUuid));
 }
@@ -190,6 +190,9 @@ void ThreadQuery::first(const QUuid &queryUuid)
 void ThreadQuery::next(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QMetaObject::invokeMethod(m_queryPrivate, "next", Qt::QueuedConnection,
                               Q_ARG(QUuid, queryUuid));
 }
@@ -197,6 +200,9 @@ void ThreadQuery::next(const QUuid &queryUuid)
 void ThreadQuery::seek(const QUuid &queryUuid, int index, bool relative)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QMetaObject::invokeMethod(m_queryPrivate, "seek", Qt::QueuedConnection,
                               Q_ARG(QUuid, queryUuid),
                               Q_ARG(int, index), Q_ARG(bool, relative));
@@ -213,6 +219,9 @@ void ThreadQuery::seek(int index, bool relative)
 void ThreadQuery::previous(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QMetaObject::invokeMethod(m_queryPrivate, "previous", Qt::QueuedConnection,
                               Q_ARG(QUuid, queryUuid));
 }
@@ -220,6 +229,9 @@ void ThreadQuery::previous(const QUuid &queryUuid)
 void ThreadQuery::last(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QMetaObject::invokeMethod(m_queryPrivate, "last", Qt::QueuedConnection,
                               Q_ARG(QUuid, queryUuid));
 }
@@ -227,6 +239,9 @@ void ThreadQuery::last(const QUuid &queryUuid)
 void ThreadQuery::fetchAll(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QMetaObject::invokeMethod(m_queryPrivate, "fetchAll", Qt::QueuedConnection,
                               Q_ARG(QUuid, queryUuid));
 }
@@ -234,14 +249,19 @@ void ThreadQuery::fetchAll(const QUuid &queryUuid)
 void ThreadQuery::stopFetch()
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
-    m_stopFetch = true;
+    QUuid oldUuid = m_queryUuid;
+    m_queryUuid = QUuid::createUuid();
+    QCoreApplication::removePostedEvents(m_queryPrivate);
 
-    emit changePosition(m_queryUuid, ThreadQuery::StoppedFetch);
+    emit changePosition(oldUuid, ThreadQuery::StoppedFetch);
 }
 
 void ThreadQuery::fetchOne(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QMetaObject::invokeMethod(m_queryPrivate, "fetchOne", Qt::QueuedConnection,
                               Q_ARG(QUuid, queryUuid));
 }
@@ -249,6 +269,9 @@ void ThreadQuery::fetchOne(const QUuid &queryUuid)
 void ThreadQuery::finish(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QMetaObject::invokeMethod(m_queryPrivate, "finish", Qt::QueuedConnection,
                               Q_ARG(QUuid, queryUuid));
 }
@@ -256,6 +279,9 @@ void ThreadQuery::finish(const QUuid &queryUuid)
 void ThreadQuery::clear(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     m_boundTypes.clear();
     m_boundValues.clear();
     QMetaObject::invokeMethod(m_queryPrivate, "clear", Qt::QueuedConnection,
@@ -283,7 +309,6 @@ void ThreadQuery::rollback()
 void ThreadQuery::run()
 {
     m_queryPrivate =  new ThreadQueryPrivate();
-    m_queryPrivate->setStopFetch(&m_stopFetch);
 
     qRegisterMetaType<QSql::ParamType>( "QSql::ParamType" );
 
@@ -322,8 +347,8 @@ void ThreadQuery::run()
 
 void ThreadQuery::pChangePosition(const QUuid &queryUuid, int pos)
 {
-    if (m_stopFetch)
-        return;
+//    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+//        return;
 
     emit changePosition(queryUuid, pos);
 }
@@ -338,16 +363,16 @@ void ThreadQuery::pError(const QUuid &queryUuid, QSqlError err)
 
 void ThreadQuery::pValues(const QUuid &queryUuid, const QList<QSqlRecord> &records)
 {
-    if (m_stopFetch)
-        return;
+//    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+//        return;
 
     emit values(queryUuid, records);
 }
 
 void ThreadQuery::pValue(const QUuid &queryUuid, const QSqlRecord &record)
 {
-    if (m_stopFetch)
-        return;
+//    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+//        return;
 
     emit value(queryUuid, record);
 }
