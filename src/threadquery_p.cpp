@@ -37,7 +37,7 @@ void ThreadQueryPrivate::databaseConnect(
     db.setUserName(userName);
     db.setPassword(password);
     if (!db.open()) {
-        emit error(db.lastError());
+        emit error(QUuid(), db.lastError());
     } else {
         m_query = (query.isEmpty())
                 ? new QSqlQuery(db) : new QSqlQuery(query, db);
@@ -66,7 +66,7 @@ bool ThreadQueryPrivate::prepare(const QString &query)
 {
     bool ret = m_query->prepare(query);
     if (!ret) {
-        emit error(m_query->lastError());
+        emit error(QUuid(), m_query->lastError());
     } else {
         *m_stopFetch = false;
         emit prepareDone();
@@ -75,104 +75,126 @@ bool ThreadQueryPrivate::prepare(const QString &query)
     return ret;
 }
 
-bool ThreadQueryPrivate::execute()
+bool ThreadQueryPrivate::execute(const QUuid &queryUuid)
 {
     QCoreApplication::removePostedEvents(this);
+    m_queryUuid = queryUuid;
     bool ret = m_query->exec();
 
     if (!ret) {
-        emit error(m_query->lastError());
+        emit error(queryUuid, m_query->lastError());
     } else {
         *m_stopFetch = false;
-        emit executeDone();
+        emit executeDone(queryUuid);
     }
 
     return ret;
 }
 
-bool ThreadQueryPrivate::execute(const QString &query)
+bool ThreadQueryPrivate::execute(const QUuid &queryUuid, const QString &query)
 {
     QCoreApplication::removePostedEvents(this);
+    m_queryUuid = queryUuid;
     bool ret = m_query->exec(query);
 
     if (!ret) {
-        emit error(m_query->lastError());
+        emit error(queryUuid, m_query->lastError());
     } else {
         *m_stopFetch = false;
-        emit executeDone();
+        emit executeDone(queryUuid);
     }
 
     return ret;
 }
 
-bool ThreadQueryPrivate::executeBatch(QSqlQuery::BatchExecutionMode mode)
+bool ThreadQueryPrivate::executeBatch(const QUuid &queryUuid,
+                                      QSqlQuery::BatchExecutionMode mode)
 {
     QCoreApplication::removePostedEvents(this);
+    m_queryUuid = queryUuid;
     bool ret = m_query->execBatch(mode);
 
     if (!ret) {
-        emit error(m_query->lastError());
+        emit error(queryUuid, m_query->lastError());
     } else {
         *m_stopFetch = false;
-        emit executeDone();
+        emit executeDone(queryUuid);
     }
 
     return ret;
 }
 
-bool ThreadQueryPrivate::first()
+bool ThreadQueryPrivate::first(const QUuid &queryUuid)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return false;
+
     if (*m_stopFetch) {
         return false;
     }
 
     bool ret = m_query->first();
-    emit changePosition(m_query->at());
+    emit changePosition(queryUuid, m_query->at());
     return ret;
 }
 
-bool ThreadQueryPrivate::next()
+bool ThreadQueryPrivate::next(const QUuid &queryUuid)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return false;
+
     if (*m_stopFetch)
         return false;
 
     bool ret = m_query->next();
-    emit changePosition(m_query->at());
+    emit changePosition(queryUuid, m_query->at());
     return ret;
 }
 
-bool ThreadQueryPrivate::seek(int index, bool relative)
+bool ThreadQueryPrivate::seek(const QUuid &queryUuid, int index, bool relative)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return false;
+
     if (*m_stopFetch)
         return false;
 
     bool ret = m_query->seek(index, relative);
-    emit changePosition(m_query->at());
+    emit changePosition(queryUuid, m_query->at());
     return ret;
 }
 
-bool ThreadQueryPrivate::previous()
+bool ThreadQueryPrivate::previous(const QUuid &queryUuid)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return false;
+
     if (*m_stopFetch)
         return false;
 
     bool ret = m_query->previous();
-    emit changePosition(m_query->at());
+    emit changePosition(queryUuid, m_query->at());
     return ret;
 }
 
-bool ThreadQueryPrivate::last()
+bool ThreadQueryPrivate::last(const QUuid &queryUuid)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return false;
+
     if (*m_stopFetch)
         return false;
 
     bool ret = m_query->last();
-    emit changePosition(m_query->at());
+    emit changePosition(queryUuid, m_query->at());
     return ret;
 }
 
-void ThreadQueryPrivate::fetchAll()
+void ThreadQueryPrivate::fetchAll(const QUuid &queryUuid)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     QList<QSqlRecord> records;
     while (m_query->next())
     {
@@ -181,24 +203,33 @@ void ThreadQueryPrivate::fetchAll()
 
         records.append(m_query->record());
     }
-    emit values(records);
+    emit values(queryUuid, records);
 }
 
-void ThreadQueryPrivate::fetchOne()
+void ThreadQueryPrivate::fetchOne(const QUuid &queryUuid)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     if (*m_stopFetch)
         return;
 
-    emit value(m_query->record());
+    emit value(queryUuid, m_query->record());
 }
 
-void ThreadQueryPrivate::finish()
+void ThreadQueryPrivate::finish(const QUuid &queryUuid)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     m_query->finish();
 }
 
-void ThreadQueryPrivate::clear()
+void ThreadQueryPrivate::clear(const QUuid &queryUuid)
 {
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     m_query->clear();
 }
 
@@ -206,7 +237,7 @@ bool ThreadQueryPrivate::transaction()
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     bool ret = db.transaction();
-    if (!ret) emit error(db.lastError());
+    if (!ret) emit error(QUuid(), db.lastError());
 
     return ret;
 }
@@ -215,7 +246,7 @@ bool ThreadQueryPrivate::commit()
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     bool ret = db.commit();
-    if (!ret) emit error(db.lastError());
+    if (!ret) emit error(QUuid(), db.lastError());
 
     return ret;
 }
@@ -224,7 +255,7 @@ bool ThreadQueryPrivate::rollback()
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     bool ret = db.rollback();
-    if (!ret) emit error(db.lastError());
+    if (!ret) emit error(QUuid(), db.lastError());
 
     return ret;
 }

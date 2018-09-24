@@ -27,13 +27,13 @@ public:
 
 public slots:
     //! Обработка окончания выполнения операции внутри потока
-    void directExecuteDone();
+    void directExecuteDone(const QUuid &queryUuid);
 
     //! Обработка получения значения внутри потока
-    void directValue(const QSqlRecord &record);
+    void directValue(const QUuid &queyUuid, const QSqlRecord &record);
 
     //! Обработка получения смены позиции внутри потока
-    void directChangePosition(int pos);
+    void directChangePosition(QUuid queryUuid, int pos);
 
 signals:
     //! Сигнал о получении значения

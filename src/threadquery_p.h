@@ -6,12 +6,15 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QtCore/QReadWriteLock>
+#include <QtCore/QUuid>
+
+#include "sqlextensionglobal.h"
 
 namespace RTPTechGroup {
 namespace SqlExtension {
 
 //! Класс обёртка выполнения SQL запросов в отдельном потоке
-class ThreadQueryPrivate: public QObject
+class SQLEXTENSIONLIB ThreadQueryPrivate: public QObject
 {
     Q_OBJECT
 public:
@@ -45,43 +48,44 @@ public slots:
     bool prepare(const QString &query);
 
     //! Выполнение подготовленного запроса
-    bool execute();
+    bool execute(const QUuid &queryUuid);
 
     //! Выполнение указанного запроса
-    bool execute(const QString &query);
+    bool execute(const QUuid &queryUuid, const QString &query);
 
     //! Выполнение ранее подготовленного запроса в пакете
-    bool executeBatch(QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows);
+    bool executeBatch(const QUuid &queryUuid,
+                      QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows);
 
 // Позиционирование на записи
     //! Перейти к первой записи
-    bool first();
+    bool first(const QUuid &queryUuid);
 
     //! Перейти к следующей записи
-    bool next();
+    bool next(const QUuid &queryUuid);
 
     //! Перейти к указанной записи
-    bool seek(int index, bool relative = false);
+    bool seek(const QUuid &queryUuid, int index, bool relative = false);
 
     //! Перейти к предыдущей записи
-    bool previous();
+    bool previous(const QUuid &queryUuid);
 
     //! Перейти к последней записи
-    bool last();
+    bool last(const QUuid &queryUuid);
 
 // Получение значений
     //! Вызывает получение всех значений в потоке
-    void fetchAll();
+    void fetchAll(const QUuid &queryUuid);
 
     //! Вызывает получение значения из потока
-    void fetchOne();
+    void fetchOne(const QUuid &queryUuid);
 
 // Окончание выполнения запроса
     //! Окончание выполнения запроса
-    void finish();
+    void finish(const QUuid &queryUuid);
 
     //! Очищает запрос
-    void clear();
+    void clear(const QUuid &queryUuid);
 
 // Работа с транзакциями
     //! Начало транзакции
@@ -98,19 +102,19 @@ signals:
     void prepareDone();
 
     //! Сигнал об окончании выполнения операции
-    void executeDone();
+    void executeDone(const QUuid &queryUuid);
 
     //! Возвращает номер позиции
-    void changePosition(int pos);
+    void changePosition(const QUuid &queryUuid, int pos);
 
     //! Возвращает ошибку
-    void error(QSqlError err);
+    void error(const QUuid &queryUuid, QSqlError err);
 
     //! Возвращает все значения из потока
-    void values(const QList<QSqlRecord> &records);
+    void values(const QUuid &queryUuid, const QList<QSqlRecord> &records);
 
     //! Возвращает значение из потока
-    void value(const QSqlRecord &record);
+    void value(const QUuid &queryUuid, const QSqlRecord &record);
 
 private:
     //! SQL запрос к БД
@@ -121,6 +125,9 @@ private:
 
     //! Флаг остановки получения значений
     volatile bool *m_stopFetch;
+
+    //! Идентификатор запроса
+    QUuid m_queryUuid;
 };
 
 }}

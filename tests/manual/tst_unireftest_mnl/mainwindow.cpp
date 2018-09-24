@@ -18,9 +18,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->findLineEdit, &QLineEdit::textChanged, this, &MainWindow::onActionExec);
     connect(ui->poolAction, &QAction::triggered, this, &MainWindow::onShowPool);
 
-    m_threadQuery = NULL;
-    m_threadManagerPool = NULL;
-    m_threadPool = NULL;
+    m_threadQuery = nullptr;
+    m_threadManagerPool = nullptr;
+    m_threadPool = nullptr;
 }
 
 MainWindow::~MainWindow()
@@ -71,12 +71,16 @@ void MainWindow::onActionExec()
         connect(threadQuery, &QueryManagerThread::result,
                 this, &MainWindow::onResult, Qt::QueuedConnection);
 
-        connect(threadQuery, &QueryManagerThread::changePosition, [this](int pos){
+        connect(threadQuery, &QueryManagerThread::changePosition,
+                [this](const QUuid &queryUuid, int pos)
+        {
            if (pos == ThreadQuery::AfterLastRow)
                addToCache();
         });
 
-        connect(threadQuery, &QueryManagerThread::error, [this](QSqlError err){
+        connect(threadQuery, &QueryManagerThread::error,
+                [this](const QUuid &queryUuid, const QSqlError &err)
+        {
             if (err.type() != QSqlError::NoError)
                 ui->logPlainText->appendPlainText(err.text());
         });

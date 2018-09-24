@@ -6,6 +6,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QMap>
 #include <QtCore/QPointer>
+#include <QtCore/QUuid>
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
@@ -17,7 +18,7 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-class ThreadQueryPrivate;
+class SQLEXTENSIONLIB ThreadQueryPrivate;
 
 //! Класс предназначенный для выполнения SQL запросов в отдельном потоке
 /*! Пример:
@@ -53,11 +54,11 @@ class SQLEXTENSIONLIB ThreadQuery : public QThread
 
 public:
     //! Конструктор класса
-    explicit ThreadQuery(const QString & query = QString(),
-                         QSqlDatabase db = QSqlDatabase::database());
+    explicit ThreadQuery(const QString &query = QString(),
+                         const QSqlDatabase &db = QSqlDatabase::database());
 
     //! Конструктор класса
-    explicit ThreadQuery(QSqlDatabase db);
+    explicit ThreadQuery(const QSqlDatabase &db);
 
     //! Деструктор класса
     virtual ~ThreadQuery();
@@ -97,13 +98,13 @@ public:
     void prepare(const QString &query);
 
     //! Выполнение указанного запроса
-    void execute(const QString &query);
+    QUuid execute(const QString &query);
 
     //! Выполнение подготовленного запроса
-    void execute();
+    QUuid execute();
 
     //! Выполнение ранее подготовленного запроса в пакете
-    void executeBatch(QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows);
+    QUuid executeBatch(QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows);
 
     //! Возвращает текущий запрос
     QString   lastQuery();
@@ -119,36 +120,39 @@ public:
 
 // Позиционирование на записи
      //! Перейти к первой записи
-    void first();
+    void first(const QUuid &queryUuid = QUuid());
 
     //! Перейти к следующей записи
-    void next();
+    void next(const QUuid &queryUuid  = QUuid());
+
+    //! Перейти к указанной записи
+    void seek(const QUuid &queryUuid, int index, bool relative = false);
 
     //! Перейти к указанной записи
     void seek(int index, bool relative = false);
 
     //! Перейти к предыдущей записи
-    void previous();
+    void previous(const QUuid &queryUuid = QUuid());
 
     //! Перейти к последней записи
-    void last();
+    void last(const QUuid &queryUuid = QUuid());
 
 // Получение значений
     //! Вызывает получение всех значений в потоке
-    void fetchAll();
+    void fetchAll(const QUuid &queryUuid = QUuid());
 
     //! Вызывает получение значения из потока
-    void fetchOne();
+    void fetchOne(const QUuid &queryUuid = QUuid());
 
     //! Останавливает получение значений в потоке
     void stopFetch();
 
 // Окончание выполнения запроса
     //! Окончание выполнения запроса
-    void finish();
+    void finish(const QUuid &queryUuid = QUuid());
 
     //! Очищает запрос
-    void clear();
+    void clear(const QUuid &queryUuid = QUuid());
 
 // Работа с транзакциями
     //! Начало транзакции
@@ -165,19 +169,19 @@ signals:
     void prepareDone();
 
     //! Сигнал об окончании выполнения операции в потоке
-    void executeDone();
+    void executeDone(const QUuid &queryUuid);
 
     //! Сигнал изменения номера позиции в потоке
-    void changePosition(int pos);
+    void changePosition(const QUuid &queryUuid, int pos);
 
     //! Сигнал ошибки в потоке
-    void error(QSqlError err);
+    void error(const QUuid &queryUuid, QSqlError err);
 
     //! Сигнал получения значений из потока
-    void values(const QList<QSqlRecord> &records);
+    void values(const QUuid &queryUuid, const QList<QSqlRecord> &records);
 
     //! Сигнал получения значения из потока
-    void value(const QSqlRecord &record);
+    void value(const QUuid &queryUuid, const QSqlRecord &record);
 
 protected:
     //! Выполнение потока
@@ -185,16 +189,16 @@ protected:
 
 private slots:
     //! Изменение номера позиции в потоке
-    void pChangePosition(int pos);
+    void pChangePosition(const QUuid &queryUuid, int pos);
 
     //! Обработка ошибки
-    void pError(QSqlError err);
+    void pError(const QUuid &queryUuid, QSqlError err);
 
     //! Получение значений из потока
-    void pValues(const QList<QSqlRecord> &records);
+    void pValues(const QUuid &queryUuid,  const QList<QSqlRecord> &records);
 
     //! Получение значения из потока
-    void pValue(const QSqlRecord &record);
+    void pValue(const QUuid &queryUuid, const QSqlRecord &record);
 
 private:
     //! Мьютекс подготовки запроса
@@ -244,6 +248,9 @@ private:
 
     //! Хранит поток с блоком запросов
     QPointer<QThread> m_blockThread;
+
+    //! Идентификатор запроса
+    QUuid m_queryUuid;
 };
 
 }}

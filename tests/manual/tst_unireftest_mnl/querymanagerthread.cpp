@@ -32,27 +32,29 @@ void QueryManagerThread::execQuery(const QString &strQuery)
         return;
     if (query->isNew()) {
 
-        connect(query, &ThreadQuery::executeDone, [query]()
+        connect(query, &ThreadQuery::executeDone, [query](const QUuid &queryUuid)
         {
-            query->first();
+            query->first(queryUuid);
         });
 
-        connect(query, &ThreadQuery::changePosition, [query](int pos)
+        connect(query, &ThreadQuery::changePosition,
+                [query](const QUuid &queryUuid, int pos)
         {
             if (pos >= 0) {
-                query->fetchOne();
+                query->fetchOne(queryUuid);
             } else {
                 query->release();
             }
 
         });
 
-        connect(query, &ThreadQuery::value, [query, this](const QSqlRecord &record)
+        connect(query, &ThreadQuery::value,
+                [query, this](const QUuid &queryUuid, const QSqlRecord &record)
         {
             if (this->m_count < MAX_COUNT) {
                 emit result(record.value(1).toString());
                 this->m_count++;
-                query->next();
+                query->next(queryUuid);
             }
 
             if (this->m_count == MAX_COUNT) {
@@ -75,16 +77,16 @@ void QueryManagerThread::setThreadPool(ThreadQueryPool<ThreadQuery> *threadPool)
     m_threadPool = threadPool;
 }
 
-void QueryManagerThread::directExecuteDone()
+void QueryManagerThread::directExecuteDone(const QUuid &queryUuid)
 {
     m_fields = "";
     m_expr   = "";
     m_table  = "";
     m_count  = 0;
-    this->first();
+    this->first(queryUuid);
 }
 
-void QueryManagerThread::directValue(const QSqlRecord &record)
+void QueryManagerThread::directValue(const QUuid &queryUuid, const QSqlRecord &record)
 {
 
     QString findString = "'%"
@@ -106,13 +108,13 @@ void QueryManagerThread::directValue(const QSqlRecord &record)
         }
     }
 
-    this->next();
+    this->next(queryUuid);
 }
 
-void QueryManagerThread::directChangePosition(int pos)
+void QueryManagerThread::directChangePosition(QUuid queryUuid, int pos)
 {
     if (pos >= 0) {
-        this->fetchOne();
+        this->fetchOne(queryUuid);
     } else {
         if (m_table != "" && pos == ThreadQuery::AfterLastRow)
             execQuery(m_sql.arg(m_fields).arg(m_table).arg(m_expr));
