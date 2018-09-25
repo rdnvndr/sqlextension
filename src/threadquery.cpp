@@ -249,8 +249,11 @@ void ThreadQuery::fetchAll(const QUuid &queryUuid)
 void ThreadQuery::stopFetch()
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (m_queryUuid == QUuid("{64418950-771a-4e53-b6cb-154b5200565d}"))
+        return;
+
     QUuid oldUuid = m_queryUuid;
-    m_queryUuid = QUuid::createUuid();
+    m_queryUuid = QUuid("{64418950-771a-4e53-b6cb-154b5200565d}");
     QCoreApplication::removePostedEvents(m_queryPrivate);
 
     emit changePosition(oldUuid, ThreadQuery::StoppedFetch);
