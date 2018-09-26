@@ -127,7 +127,7 @@ QUuid ThreadQuery::execute(const QString &query)
     m_queryUuid = QUuid::createUuid();
     m_queryText = query;
     QMetaObject::invokeMethod(m_queryPrivate, "execute", Qt::QueuedConnection,
-                              Q_ARG(QUuid, m_queryText),
+                              Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(QString, m_queryText));
 
     return m_queryUuid;
@@ -138,7 +138,7 @@ QUuid ThreadQuery::execute()
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_queryUuid = QUuid::createUuid();
     QMetaObject::invokeMethod(m_queryPrivate, "execute", Qt::QueuedConnection,
-                              Q_ARG(QUuid, m_queryText));
+                              Q_ARG(QUuid, m_queryUuid));
 
     return m_queryUuid;
 }
@@ -148,7 +148,7 @@ QUuid ThreadQuery::executeBatch(QSqlQuery::BatchExecutionMode mode)
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_queryUuid = QUuid::createUuid();
     QMetaObject::invokeMethod(m_queryPrivate, "executeBatch", Qt::QueuedConnection,
-                              Q_ARG(QUuid, m_queryText),
+                              Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(QSqlQuery::BatchExecutionMode, mode));
 
     return m_queryUuid;
@@ -184,7 +184,7 @@ void ThreadQuery::first(const QUuid &queryUuid)
         return;
 
     QMetaObject::invokeMethod(m_queryPrivate, "first", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid));
+                              Q_ARG(QUuid, m_queryUuid));
 }
 
 void ThreadQuery::next(const QUuid &queryUuid)
@@ -194,7 +194,7 @@ void ThreadQuery::next(const QUuid &queryUuid)
         return;
 
     QMetaObject::invokeMethod(m_queryPrivate, "next", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid));
+                              Q_ARG(QUuid, m_queryUuid));
 }
 
 void ThreadQuery::seek(const QUuid &queryUuid, int index, bool relative)
@@ -204,7 +204,7 @@ void ThreadQuery::seek(const QUuid &queryUuid, int index, bool relative)
         return;
 
     QMetaObject::invokeMethod(m_queryPrivate, "seek", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid),
+                              Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(int, index), Q_ARG(bool, relative));
 }
 
@@ -212,7 +212,7 @@ void ThreadQuery::seek(int index, bool relative)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     QMetaObject::invokeMethod(m_queryPrivate, "seek", Qt::QueuedConnection,
-                              Q_ARG(QUuid, QUuid()),
+                              Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(int, index), Q_ARG(bool, relative));
 }
 
@@ -223,7 +223,7 @@ void ThreadQuery::previous(const QUuid &queryUuid)
         return;
 
     QMetaObject::invokeMethod(m_queryPrivate, "previous", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid));
+                              Q_ARG(QUuid, m_queryUuid));
 }
 
 void ThreadQuery::last(const QUuid &queryUuid)
@@ -233,7 +233,7 @@ void ThreadQuery::last(const QUuid &queryUuid)
         return;
 
     QMetaObject::invokeMethod(m_queryPrivate, "last", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid));
+                              Q_ARG(QUuid, m_queryUuid));
 }
 
 void ThreadQuery::fetchAll(const QUuid &queryUuid)
@@ -243,7 +243,7 @@ void ThreadQuery::fetchAll(const QUuid &queryUuid)
         return;
 
     QMetaObject::invokeMethod(m_queryPrivate, "fetchAll", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid));
+                              Q_ARG(QUuid, m_queryUuid));
 }
 
 void ThreadQuery::stopFetch()
@@ -254,9 +254,12 @@ void ThreadQuery::stopFetch()
 
     QUuid oldUuid = m_queryUuid;
     m_queryUuid = QUuid("{64418950-771a-4e53-b6cb-154b5200565d}");
-    QCoreApplication::removePostedEvents(m_queryPrivate);
+    m_queryPrivate->setQueryUuid(QUuid::createUuid());    
+    QMetaObject::invokeMethod(m_queryPrivate, "stopFetch", Qt::QueuedConnection,
+                              Q_ARG(QUuid, oldUuid));
+//    QCoreApplication::removePostedEvents(m_queryPrivate);
 
-    emit changePosition(oldUuid, ThreadQuery::StoppedFetch);
+    // emit changePosition(oldUuid, ThreadQuery::StoppedFetch);
 }
 
 void ThreadQuery::fetchOne(const QUuid &queryUuid)
@@ -266,7 +269,7 @@ void ThreadQuery::fetchOne(const QUuid &queryUuid)
         return;
 
     QMetaObject::invokeMethod(m_queryPrivate, "fetchOne", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid));
+                              Q_ARG(QUuid, m_queryUuid));
 }
 
 void ThreadQuery::finish(const QUuid &queryUuid)
@@ -276,7 +279,7 @@ void ThreadQuery::finish(const QUuid &queryUuid)
         return;
 
     QMetaObject::invokeMethod(m_queryPrivate, "finish", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid));
+                              Q_ARG(QUuid, m_queryUuid));
 }
 
 void ThreadQuery::clear(const QUuid &queryUuid)
@@ -288,7 +291,7 @@ void ThreadQuery::clear(const QUuid &queryUuid)
     m_boundTypes.clear();
     m_boundValues.clear();
     QMetaObject::invokeMethod(m_queryPrivate, "clear", Qt::QueuedConnection,
-                              Q_ARG(QUuid, queryUuid));
+                              Q_ARG(QUuid, m_queryUuid));
 }
 
 void ThreadQuery::transaction()

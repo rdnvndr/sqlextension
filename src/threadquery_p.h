@@ -7,6 +7,7 @@
 #include <QtSql/QSqlError>
 #include <QtCore/QReadWriteLock>
 #include <QtCore/QUuid>
+#include <QtCore/QMutex>
 
 #include "sqlextensionglobal.h"
 
@@ -23,6 +24,9 @@ public:
 
     //! Деструктор класса
     virtual ~ThreadQueryPrivate();
+
+    //! Установка значения текущего идентификатора запроса
+    void setQueryUuid(const QUuid &queryUuid);
 
 public slots:
     //! Устанавливает соединение
@@ -94,6 +98,9 @@ public slots:
     //! Откат транзакции
     bool rollback();
 
+    //! Высылает сигнал об остановке получения значений
+    void stopFetch(const QUuid &queryUuid);
+
 signals:
     //! Сигнал об окончании подготовки запроса
     void prepareDone();
@@ -119,6 +126,12 @@ private:
 
     //! Соединение с БД
     QString m_connectionName;
+
+    //! Защищает изменение идентификатора запросов
+    QMutex m_uuidMutex;
+
+    //! Идентификатор запроса
+    QUuid m_queryUuid;
 };
 
 }}
