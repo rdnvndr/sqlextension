@@ -44,10 +44,11 @@ void ThreadQueryPrivate::databaseConnect(
     }
 }
 
-void ThreadQueryPrivate::bindValue(const QString &placeholder,
-                                   const QVariant &val,
-                                   QSql::ParamType paramType)
+void ThreadQueryPrivate::bindValue(const QUuid &queryUuid, const QString &placeholder,
+                                   const QVariant &val, QSql::ParamType paramType)
 {
+    if (m_queryUuid != queryUuid)
+        return;
     m_query->bindValue(placeholder, val, paramType);
 }
 
@@ -62,13 +63,14 @@ void ThreadQueryPrivate::setForwardOnly(bool forward)
     m_query->setForwardOnly(forward);
 }
 
-bool ThreadQueryPrivate::prepare(const QString &query)
+bool ThreadQueryPrivate::prepare(const QUuid &queryUuid, const QString &query)
 {
+    m_queryUuid = queryUuid;
     bool ret = m_query->prepare(query);
     if (!ret) {
-        emit error(QUuid(), m_query->lastError());
+        emit error(m_queryUuid, m_query->lastError());
     } else {
-        emit prepareDone();
+        emit prepareDone(queryUuid);
     }
 
     return ret;

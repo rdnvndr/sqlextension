@@ -36,7 +36,7 @@ public slots:
 
 // Подготовка и выполнение запроса
     //! Установка заполнителя
-    void bindValue(const QString  &placeholder,
+    void bindValue(const QUuid &queryUuid, const QString  &placeholder,
                    const QVariant &val, QSql::ParamType paramType = QSql::In);
 
     //! Установка политики точности числа
@@ -46,7 +46,7 @@ public slots:
     void setForwardOnly(bool forward);
 
     //! Подготовка запроса
-    bool prepare(const QString &query);
+    bool prepare(const QUuid &queryUuid, const QString &query);
 
     //! Выполнение подготовленного запроса
     bool execute(const QUuid &queryUuid);
@@ -103,7 +103,7 @@ public slots:
 
 signals:
     //! Сигнал об окончании подготовки запроса
-    void prepareDone();
+    void prepareDone(const QUuid &queryUuid);
 
     //! Сигнал об окончании выполнения операции
     void executeDone(const QUuid &queryUuid);

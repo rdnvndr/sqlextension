@@ -85,15 +85,19 @@ bool ThreadQuery::isForwardOnly()
     return m_forwardOnly;
 }
 
-void ThreadQuery::bindValue(const QString &placeholder, const QVariant &val,
-                            QSql::ParamType paramType)
+void ThreadQuery::bindValue(const QUuid &queryUuid, const QString &placeholder,
+                            const QVariant &val, QSql::ParamType paramType)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
     m_boundValues.insert(placeholder, val);
     m_boundTypes.insert(placeholder, paramType);
 
     QMetaObject::invokeMethod(
                 m_queryPrivate, "bindValue", Qt::QueuedConnection,
+                Q_ARG(QUuid, m_queryUuid),
                 Q_ARG(QString, placeholder),
                 Q_ARG(QVariant, val),
                 Q_ARG(QSql::ParamType, paramType));
@@ -111,14 +115,20 @@ QMap<QString, QVariant> ThreadQuery::boundValues()
     return m_boundValues;
 }
 
-void ThreadQuery::prepare(const QString &query)
+QUuid ThreadQuery::prepare(const QString &query)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_boundTypes.clear();
     m_boundValues.clear();
     m_queryText = query;
+
+    m_queryUuid = QUuid::createUuid();
+    m_queryPrivate->setQueryUuid(QUuid::createUuid());
     QMetaObject::invokeMethod(m_queryPrivate, "prepare", Qt::QueuedConnection,
+                              Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(QString, m_queryText));
+
+    return m_queryUuid;
 }
 
 QUuid ThreadQuery::execute(const QString &query)

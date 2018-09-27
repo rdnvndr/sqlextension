@@ -84,7 +84,7 @@ public:
     bool isForwardOnly();
 
     //! Установка заполнителя
-    void bindValue(const QString  &placeholder,
+    void bindValue(const QUuid &queryUuid, const QString  &placeholder,
                    const QVariant &val, QSql::ParamType paramType = QSql::In);
 
     //! Получение заполнителя
@@ -95,7 +95,7 @@ public:
 
 // Подготовка и выполнение запроса
     //! Подготовка запроса
-    void prepare(const QString &query);
+    QUuid prepare(const QString &query);
 
     //! Выполнение указанного запроса
     QUuid execute(const QString &query);
@@ -166,7 +166,7 @@ public:
 
 signals:
     //! Сигнал об окончании подготовки запроса
-    void prepareDone();
+    void prepareDone(const QUuid &queryUuid);
 
     //! Сигнал об окончании выполнения операции в потоке
     void executeDone(const QUuid &queryUuid);
