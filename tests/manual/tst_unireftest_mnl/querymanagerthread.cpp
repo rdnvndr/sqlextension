@@ -27,52 +27,18 @@ QueryManagerThread::~QueryManagerThread()
 
 void QueryManagerThread::execQuery(const QString &strQuery)
 {
-    ThreadQueryItem<ThreadQuery> *query = m_threadPool->acquire();
+    ThreadQueryItem<Query> *query = m_threadPool->acquire();
+    query->setQueryManager(this);
     if (query == nullptr)
         return;
     if (query->isNew()) {
-
-        connect(query, &ThreadQuery::executeDone, [query](const QUuid &queryUuid)
-        {
-            query->first(queryUuid);
-        });
-
-        connect(query, &ThreadQuery::changePosition,
-                [query](const QUuid &queryUuid, int pos)
-        {
-            if (pos >= 0) {
-                query->fetchOne(queryUuid);
-            } else {
-                query->release();
-            }
-
-        });
-
-        connect(query, &ThreadQuery::value,
-                [query, this](const QUuid &queryUuid, const QSqlRecord &record)
-        {
-            if (this->m_count < MAX_COUNT) {
-                emit result(record.value(1).toString());
-                this->m_count++;
-                query->next(queryUuid);
-            }
-
-            if (this->m_count == MAX_COUNT) {
-                this->stopFetch();
-                this->m_count++;
-            }
-
-        });
-
-        connect(query, &ThreadQuery::error, this, &QueryManagerThread::error);
-
-        connect(this, &QueryManagerThread::stoppedFetch,
-                query, &ThreadQuery::stopFetch, Qt::QueuedConnection);
+        connect(query, &Query::stoppedFetch,
+                query, &ThreadQueryItem<Query>::release);
     }
     query->execute(strQuery);
 }
 
-void QueryManagerThread::setThreadPool(ThreadQueryPool<ThreadQuery> *threadPool)
+void QueryManagerThread::setThreadPool(ThreadQueryPool<Query> *threadPool)
 {
     m_threadPool = threadPool;
 }
@@ -82,7 +48,9 @@ void QueryManagerThread::directExecuteDone(const QUuid &queryUuid)
     m_fields = "";
     m_expr   = "";
     m_table  = "";
+    m_valueMutex.lock();
     m_count  = 0;
+    m_valueMutex.unlock();
     this->first(queryUuid);
 }
 
@@ -118,7 +86,26 @@ void QueryManagerThread::directChangePosition(QUuid queryUuid, int pos)
     } else {
         if (m_table != "" && pos == ThreadQuery::AfterLastRow)
             execQuery(m_sql.arg(m_fields).arg(m_table).arg(m_expr));
-        emit stoppedFetch();
+        if (pos == ThreadQuery::StoppedFetch)
+            emit stoppedFetch();
     }
 }
+
+void QueryManagerThread::queryValue(const QUuid &queryUuid, const QSqlRecord &record)
+{
+    ThreadQuery *query = static_cast<ThreadQuery *>(sender());
+    m_valueMutex.lock();
+    if (this->m_count < MAX_COUNT) {
+        this->m_count++;
+        m_valueMutex.unlock();
+        emit result(record.value(1).toString());
+        query->next(queryUuid);
+    } else if (this->m_count == MAX_COUNT) {
+        this->m_count++;
+        m_valueMutex.unlock();
+        this->stopFetch();
+    } else
+        m_valueMutex.unlock();
+}
+
 

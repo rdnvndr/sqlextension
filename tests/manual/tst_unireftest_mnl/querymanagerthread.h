@@ -6,6 +6,8 @@
 #include <sqlextension/threadquery.h>
 #include <sqlextension/threadquerypool.h>
 
+#include "query.h"
+
 using namespace RTPTechGroup::SqlExtension;
 
 //! Класс получения таблиц класса УТС и списка полей с экранными именами
@@ -22,8 +24,8 @@ public:
     //! Выполнение подзапроса
     void execQuery(const QString &strQuery);
 
-
-    void setThreadPool(ThreadQueryPool<ThreadQuery> *threadPool);
+    //! Утанавливает пул запросов
+    void setThreadPool(ThreadQueryPool<Query> *threadPool);
 
 public slots:
     //! Обработка окончания выполнения операции внутри потока
@@ -35,6 +37,9 @@ public slots:
     //! Обработка получения смены позиции внутри потока
     void directChangePosition(QUuid queryUuid, int pos);
 
+    //! Обрабатывает получение значений
+    void queryValue(const QUuid &queryUuid, const QSqlRecord &record);
+
 signals:
     //! Сигнал о получении значения
     void result(const QString& r);
@@ -44,7 +49,7 @@ signals:
 
 private:
     //! Пул запросов
-    ThreadQueryPool<ThreadQuery> *m_threadPool;
+    ThreadQueryPool<Query> *m_threadPool;
 
     //! Sql запрос
     QString m_sql;
@@ -60,6 +65,9 @@ private:
 
     //! Количество результатов
     int m_count;
+
+    //! Защищает количество результатов
+    QMutex m_valueMutex;
 };
 
 #endif // QUERYMANAGERTHREAD_H

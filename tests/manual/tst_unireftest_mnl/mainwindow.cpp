@@ -65,8 +65,7 @@ void MainWindow::onActionExec()
     {
         threadQuery->setThreadPool(m_threadPool);
         connect(threadQuery, &QueryManagerThread::stoppedFetch,
-                threadQuery, &ThreadQueryItem<QueryManagerThread>::release,
-                Qt::DirectConnection);
+                threadQuery, &ThreadQueryItem<QueryManagerThread>::release);
 
         connect(threadQuery, &QueryManagerThread::result,
                 this, &MainWindow::onResult, Qt::QueuedConnection);
@@ -75,14 +74,14 @@ void MainWindow::onActionExec()
                 [this](const QUuid &queryUuid, int pos)
         {
            if (pos == ThreadQuery::AfterLastRow)
-               addToCache();
+               this->addToCache();
         });
 
         connect(threadQuery, &QueryManagerThread::error,
                 [this](const QUuid &queryUuid, const QSqlError &err)
         {
             if (err.type() != QSqlError::NoError)
-                ui->logPlainText->appendPlainText(err.text());
+                this->ui->logPlainText->appendPlainText(err.text());
         });
     }
 
@@ -111,8 +110,8 @@ void MainWindow::onActionExec()
 
 void MainWindow::onRunAction()
 {
-    m_cache.remove(ui->findLineEdit->text());
-    onActionExec();
+    this->m_cache.remove(ui->findLineEdit->text());
+    this->onActionExec();
 }
 
 void MainWindow::onActionConnect()
@@ -146,7 +145,7 @@ void MainWindow::onActionConnect()
             m_threadManagerPool->deleteLater();
 
         this->m_threadManagerPool = new ThreadQueryPool<QueryManagerThread>(db);
-        this->m_threadPool        = new ThreadQueryPool<ThreadQuery>(db);
+        this->m_threadPool        = new ThreadQueryPool<Query>(db);
     } else {
         QSqlError err = db.lastError();
         if (err.type() != QSqlError::NoError){
@@ -160,6 +159,12 @@ void MainWindow::onActionConnect()
 
 void MainWindow::onShowPool()
 {
+    if (m_threadManagerPool == nullptr || m_threadPool == nullptr) {
+        ui->logPlainText->appendPlainText(
+                    "Отсутствует соединение с базой данных\n");
+        return;
+    }
+
     ui->logPlainText->appendPlainText(
                 QString("\nПул менеджеров: %1 из %2"
                         "\nПул запросов: %3 из %4\n")
