@@ -26,26 +26,25 @@ class SQLEXTENSIONLIB ThreadQueryPrivate;
     ThreadQuery *threadQuery = new ThreadQuery();
 
     // Обработка окончания выполнение запроса
-    connect(threadQuery, &ThreadQuery::executeDone, [=] (bool success) {
-        threadQuery->first();
+    connect(threadQuery, &ThreadQuery::executeDone, [=] (const QUuid &queryUuid) {
+        threadQuery->first(queryUuid);
     });
 
     //! Обработка выбора записи
-    connect(threadQuery, &ThreadQuery::changePosition, [=] (int pos) {
+    connect(threadQuery, &ThreadQuery::changePosition, [=] (const QUuid &queryUuid, int pos) {
         if (pos >= 0)
-            threadQuery->fetchOne();
+            threadQuery->fetchOne(queryUuid);
     });
 
     // Обработка получения значений
-    connect(threadQuery, &ThreadQuery::value, [=] (const QSqlRecord &value)
+    connect(threadQuery, &ThreadQuery::value, [=] (const QUuid &queryUuid, const QSqlRecord &value)
     {
        qDebug() << QString("Value: %1 \n").arg(value.value(0).toString()));
-       threadQuery->next();
+       threadQuery->next(queryUuid);
     });
 
     // Начало выполнения запроса
-    threadQuery->prepare("SELECT * FROM TEST");
-    threadQuery->execute();
+    threadQuery->execute("SELECT * FROM TEST");
 \endcode
 */
 class SQLEXTENSIONLIB ThreadQuery : public QThread

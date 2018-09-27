@@ -29,8 +29,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_threadTest, &ThreadQuery::executeDone, this, [=] (QUuid queryUuid) {
             ui->logPlainText->insertPlainText("Execute done.\n");
-            m_threadTest->fetchAll();
-            m_threadTest->first();
+            m_threadTest->fetchAll(queryUuid);
+            m_threadTest->first(queryUuid);
     });
 
     connect(m_threadTest, &ThreadQuery::values,
@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_threadTest, &ThreadQuery::changePosition,
             this, [=] (QUuid queryUuid, int pos) {
         if (pos >= 0)
-            m_threadTest->fetchOne();
+            m_threadTest->fetchOne(queryUuid);
         else {
             ui->logPlainText->insertPlainText("End FetchAll\n");
             ui->logPlainText->insertPlainText("\n");
@@ -61,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->logPlainText->insertPlainText(
                     QString("Value: %1 \n")
                     .arg(value.value("FULLNAME").toString()));
-        m_threadTest->next();
+        m_threadTest->next(queryUuid);
 
     });
 }
