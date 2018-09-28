@@ -98,9 +98,6 @@ public slots:
     //! Откат транзакции
     bool rollback();
 
-    //! Высылает сигнал об остановке получения значений
-    void stopFetch(const QUuid &queryUuid);
-
 signals:
     //! Сигнал об окончании подготовки запроса
     void prepareDone(const QUuid &queryUuid);

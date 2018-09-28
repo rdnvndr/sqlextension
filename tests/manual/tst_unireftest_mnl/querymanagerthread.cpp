@@ -103,7 +103,7 @@ void QueryManagerThread::queryValue(const QUuid &queryUuid, const QSqlRecord &re
     } else if (this->m_count == MAX_COUNT) {
         this->m_count++;
         m_valueMutex.unlock();
-        this->stopFetch();
+        this->finish();
     } else
         m_valueMutex.unlock();
 }

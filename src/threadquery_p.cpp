@@ -199,11 +199,15 @@ void ThreadQueryPrivate::fetchOne(const QUuid &queryUuid)
 void ThreadQueryPrivate::finish(const QUuid &queryUuid)
 {
     m_query->finish();
+    emit changePosition(queryUuid, -3);
 }
 
 void ThreadQueryPrivate::clear(const QUuid &queryUuid)
 {
     m_query->clear();
+
+    if (queryUuid != QUuid("{64418950-771a-4e53-b6cb-154b5200565d}"))
+        emit changePosition(queryUuid, -3);
 }
 
 bool ThreadQueryPrivate::transaction()
@@ -238,11 +242,6 @@ void ThreadQueryPrivate::setQueryUuid(const QUuid &queryUuid)
     m_uuidMutex.lock();
     m_queryUuid = queryUuid;
     m_uuidMutex.unlock();
-}
-
-void ThreadQueryPrivate::stopFetch(const QUuid &queryUuid)
-{
-    emit changePosition(queryUuid, -3);
 }
 
 }}

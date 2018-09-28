@@ -143,15 +143,12 @@ public:
     //! Вызывает получение значения из потока
     void fetchOne(const QUuid &queryUuid = QUuid());
 
-    //! Останавливает получение значений в потоке
-    void stopFetch();
-
 // Окончание выполнения запроса
     //! Окончание выполнения запроса
-    void finish(const QUuid &queryUuid = QUuid());
+    void finish();
 
     //! Очищает запрос
-    void clear(const QUuid &queryUuid = QUuid());
+    void clear();
 
 // Работа с транзакциями
     //! Начало транзакции

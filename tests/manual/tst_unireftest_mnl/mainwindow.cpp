@@ -43,7 +43,7 @@ void MainWindow::onActionExec()
         return;
     }
     if (m_threadQuery) {
-        m_threadQuery->stopFetch();
+        m_threadQuery->finish();
         m_modelMutex.lock();
 
         if (ui->cacheAction->isChecked()) {

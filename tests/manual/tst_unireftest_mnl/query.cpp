@@ -17,7 +17,7 @@ void Query::setQueryManager(QueryManagerThread *manager)
     m_errorConn = connect(this, &ThreadQuery::error,
                            manager, &QueryManagerThread::error);
     m_stopConn = connect(manager, &QueryManagerThread::stoppedFetch,
-                         this, &ThreadQuery::stopFetch, Qt::QueuedConnection);
+                         this, &ThreadQuery::finish, Qt::QueuedConnection);
 }
 
 void Query::directChangePosition(const QUuid &queryUuid, int pos)
@@ -30,5 +30,5 @@ void Query::directChangePosition(const QUuid &queryUuid, int pos)
         QObject::disconnect(m_errorConn);
         emit stoppedFetch();
     } else
-        this->stopFetch();
+        this->finish();
 }

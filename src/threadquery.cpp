@@ -256,7 +256,7 @@ void ThreadQuery::fetchAll(const QUuid &queryUuid)
                               Q_ARG(QUuid, m_queryUuid));
 }
 
-void ThreadQuery::stopFetch()
+void ThreadQuery::finish()
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     if (m_queryUuid == QUuid("{64418950-771a-4e53-b6cb-154b5200565d}"))
@@ -265,11 +265,8 @@ void ThreadQuery::stopFetch()
     QUuid oldUuid = m_queryUuid;
     m_queryUuid = QUuid("{64418950-771a-4e53-b6cb-154b5200565d}");
     m_queryPrivate->setQueryUuid(QUuid::createUuid());    
-    QMetaObject::invokeMethod(m_queryPrivate, "stopFetch", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(m_queryPrivate, "finish", Qt::QueuedConnection,
                               Q_ARG(QUuid, oldUuid));
-//    QCoreApplication::removePostedEvents(m_queryPrivate);
-
-    // emit changePosition(oldUuid, ThreadQuery::StoppedFetch);
 }
 
 void ThreadQuery::fetchOne(const QUuid &queryUuid)
@@ -282,26 +279,19 @@ void ThreadQuery::fetchOne(const QUuid &queryUuid)
                               Q_ARG(QUuid, m_queryUuid));
 }
 
-void ThreadQuery::finish(const QUuid &queryUuid)
+void ThreadQuery::clear()
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return;
 
-    QMetaObject::invokeMethod(m_queryPrivate, "finish", Qt::QueuedConnection,
-                              Q_ARG(QUuid, m_queryUuid));
-}
-
-void ThreadQuery::clear(const QUuid &queryUuid)
-{
-    QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
-    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
-        return;
+    QUuid oldUuid = m_queryUuid;
+    m_queryUuid = QUuid("{64418950-771a-4e53-b6cb-154b5200565d}");
+    m_queryPrivate->setQueryUuid(QUuid::createUuid());
 
     m_boundTypes.clear();
     m_boundValues.clear();
+
     QMetaObject::invokeMethod(m_queryPrivate, "clear", Qt::QueuedConnection,
-                              Q_ARG(QUuid, m_queryUuid));
+                              Q_ARG(QUuid, oldUuid));
 }
 
 void ThreadQuery::transaction()
