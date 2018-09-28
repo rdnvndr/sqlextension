@@ -86,6 +86,10 @@ public:
     void bindValue(const QUuid &queryUuid, const QString  &placeholder,
                    const QVariant &val, QSql::ParamType paramType = QSql::In);
 
+    //! Установка заполнителя
+    void bindValue(const QString  &placeholder, const QVariant &val,
+                   QSql::ParamType paramType = QSql::In);
+
     //! Получение заполнителя
     QVariant boundValue(const QString & placeholder);
 

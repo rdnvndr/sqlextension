@@ -103,6 +103,12 @@ void ThreadQuery::bindValue(const QUuid &queryUuid, const QString &placeholder,
                 Q_ARG(QSql::ParamType, paramType));
 }
 
+void ThreadQuery::bindValue(const QString &placeholder, const QVariant &val,
+                            QSql::ParamType paramType)
+{
+    bindValue(QUuid(), placeholder, val, paramType);
+}
+
 QVariant ThreadQuery::boundValue(const QString &placeholder)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
