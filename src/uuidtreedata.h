@@ -14,7 +14,6 @@ struct UuidTreeNode
     QString id;
     QString parent;
     QList<QString> children;
-    QList<QVariant> data;
 };
 
 //! Абстрактный класс узла дерева
@@ -105,6 +104,9 @@ protected:
     //! Создание узла дерева
     virtual UuidTreeNode *createNode(QString id) const = 0;
 
+    //! Обновление данных
+    virtual bool refreshData(UuidTreeNode *node) const = 0;
+
     //! Запись данных
     virtual bool writeData(QString id, int column, const QVariant &value) = 0;
 
@@ -117,8 +119,11 @@ protected:
                                 = QMap<QString, QVariant>()) = 0;
 
 protected:
-    //! Кэш узлов
-    mutable QCache<QString, UuidTreeNode> m_cache;
+    //! Узлы дерева
+    mutable QMap<QString, UuidTreeNode *> m_nodes;
+
+    //! Кэш данных
+    mutable QCache<UuidTreeNode *, QList<QVariant> > m_dataCache;
 
     //! Список полей данных для выборки
     QStringList m_dataNames;

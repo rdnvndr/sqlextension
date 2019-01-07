@@ -1,5 +1,7 @@
 #include "sqltreedata.h"
 
+#include <QUuid>
+
 SqlTreeData::SqlTreeData(QObject *parent, int maxCost)
     : UuidTreeData(parent, maxCost)
 {
@@ -31,7 +33,7 @@ SqlTreeData::~SqlTreeData()
 
 UuidTreeNode *SqlTreeData::createNode(QString id) const
 {
-    UuidTreeNode* n;
+    UuidTreeNode* n = nullptr;
 
     QSqlQuery query(m_db);
     if (!id.isEmpty()) {
@@ -50,14 +52,18 @@ UuidTreeNode *SqlTreeData::createNode(QString id) const
         n = new UuidTreeNode;
         n->id = query.value(0).toString();
         n->parent = query.value(1).toString();
+        QList<QVariant> *nodeValue = new QList<QVariant>();
         for (int i=0; i < m_dataNames.count(); i++)
-            n->data.append(query.value(i+2));
+           nodeValue->append(query.value(i+2));
+        m_dataCache.insert(n, nodeValue);
     } else {
         n = new UuidTreeNode;
         n->id.clear();
         n->parent = QString("-");
+        QList<QVariant> *nodeValue = new QList<QVariant>();
         for (int i=0; i < m_dataNames.count(); i++)
-            n->data.append(m_dataNames[i]);
+            nodeValue->append(m_dataNames[i]);
+        m_dataCache.insert(n, nodeValue);
     }
 
     query.exec(QString("SELECT %1 FROM %2 WHERE %3 %4 ORDER BY %5")
@@ -75,6 +81,35 @@ UuidTreeNode *SqlTreeData::createNode(QString id) const
     return n;
 }
 
+bool SqlTreeData::refreshData(UuidTreeNode *node) const
+{
+    QSqlQuery query(m_db);
+    QString id = node->id;
+    if (!id.isEmpty()) {
+        query.exec(QString("SELECT %1 FROM %2 WHERE %3 = '%4'")
+                   .arg(m_dataNames.join(", "))
+                   .arg(m_tableName)
+                   .arg(m_idName)
+                   .arg(id)
+                   );
+
+        if (!query.next())
+            return false;
+
+        QList<QVariant> *nodeValue = new QList<QVariant>();
+        for (int i=0; i < m_dataNames.count(); i++)
+           nodeValue->append(query.value(i));
+        m_dataCache.insert(node, nodeValue);
+    } else {
+        QList<QVariant> *nodeValue = new QList<QVariant>();
+        for (int i=0; i < m_dataNames.count(); i++)
+            nodeValue->append(m_dataNames[i]);
+        m_dataCache.insert(node, nodeValue);
+    }
+
+    return true;
+}
+
 bool SqlTreeData::writeData(QString id, int column, const QVariant &value)
 {
     QSqlQuery query(m_db);
@@ -85,7 +120,6 @@ bool SqlTreeData::writeData(QString id, int column, const QVariant &value)
             .arg(m_idName)
             .arg(id);
     if (!query.exec(queryStr)) {
-        QString err = query.lastError().text();
         return false;
     }
 
@@ -109,20 +143,29 @@ QString SqlTreeData::insertData(QString parent, const QMap<QString, QVariant> &d
     QSqlQuery query(m_db);
     QStringList names = data.keys();
     QStringList values;
+
     foreach (QVariant value, data.values()) {
         values.append(QString("'%1'").arg(value.toString()));
     }
+
     names.prepend(m_parentName);
-    values.prepend(QString("%1").arg(parent));
+    values.prepend( parent.isEmpty() ? "NULL" : "'" + parent + "'");
+
+    names.prepend(m_idName);
+    QString id = QUuid::createUuid().toString();
+    values.prepend("'" + id + "'");
+
     QString queryStr = QString("INSERT INTO %1(%2) VALUES(%3)")
             .arg(m_tableName)
             .arg(names.join(", "))
             .arg(values.join(", "));
 
-    if (!query.exec(queryStr))
+    if (!query.exec(queryStr)) {
+        QString err = query.lastError().text();
         return QString("");
+    }
 
-    return query.lastInsertId().toString();
+    return id;
 }
 
 bool SqlTreeData::isEditable(QString id, int column) const

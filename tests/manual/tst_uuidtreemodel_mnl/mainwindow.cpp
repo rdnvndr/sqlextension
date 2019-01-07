@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     db.setDatabaseName(QApplication::applicationDirPath() + "/tree.db");
     db.open();
 
-    m_data = new SqlTreeData( this );
+    m_data = new SqlTreeData(this);
     m_data->setDatabase(db);
     m_data->setTable("utags");
 	QStringList columns;

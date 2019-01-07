@@ -40,6 +40,9 @@ protected:
     //! Создание узла дерева
     UuidTreeNode *createNode(QString id) const;
 
+    //! Обновление данных
+    bool refreshData(UuidTreeNode *node) const;
+
     //! Запись данных
     bool writeData(QString id, int column, const QVariant &value);
 

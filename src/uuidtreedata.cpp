@@ -3,7 +3,7 @@
 UuidTreeData::UuidTreeData(QObject *parent, int maxCost)
     : QObject(parent)
 {
-    m_cache.setMaxCost(maxCost);
+    m_dataCache.setMaxCost(maxCost);
 }
 
 void UuidTreeData::setFields(const QStringList &dataFields)
@@ -18,17 +18,17 @@ QStringList UuidTreeData::fields() const
 
 UuidTreeData::~UuidTreeData()
 {
-
+    qDeleteAll(m_nodes);
 }
 
 UuidTreeNode* UuidTreeData::node(QString id) const
 {
-    UuidTreeNode* n = m_cache[id];
+    UuidTreeNode* n = m_nodes[id];
     if (n) return n;
 
     n = createNode(id);
 
-    m_cache.insert(id, n);
+    m_nodes.insert(id, n);
     return n;
 }
 
@@ -37,7 +37,12 @@ QVariant UuidTreeData::data(QString id, int column) const
     UuidTreeNode* n = node(id);
     if (!n)
         return QVariant();
-    return n->data[column];
+
+    if (!m_dataCache.contains(n))
+        if (!refreshData(n))
+            return QVariant();
+
+    return (*m_dataCache[n])[column];
 }
 
 QVariant UuidTreeData::data(QString id, const QString &name) const
@@ -57,7 +62,12 @@ bool UuidTreeData::setData(QString id, int column, const QVariant &value)
     if (!writeData(id, column, value))
         return false;
 
-    n->data[column] = value;
+    if (!m_dataCache.contains(n))
+        if (!refreshData(n))
+            return false;
+
+    (*m_dataCache[n])[column] = value;
+
     return true;
 }
 
@@ -98,7 +108,11 @@ int UuidTreeData::dataCount(QString id) const
     UuidTreeNode* n = node(id);
     if (!n)
         return 0;
-    return n->data.count();
+
+    if (!m_dataCache.contains(n))
+        if (!refreshData(n))
+            return 0;
+    return m_dataCache[n]->count();
 }
 
 UuidTreeNode *UuidTreeData::child(QString parent, int index) const
@@ -127,8 +141,9 @@ QString UuidTreeData::insertChild(QString parent,
 
     QString id = insertData(parent, data);
 
-    if (!id.isEmpty())
+    if (!id.isEmpty()) {
         n->children.append(id);
+    }
     return id;
 }
 
@@ -146,8 +161,11 @@ bool UuidTreeData::removeChild(QString parent, QString id)
     if (!removeData(parent, id))
         return false;
 
+    m_dataCache.remove(nc);
     np->children.removeOne(id);
-    m_cache.remove(id);
+    m_nodes.remove(id);
+    delete nc;
+
     return true;
 }
 

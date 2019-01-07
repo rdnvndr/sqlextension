@@ -145,7 +145,9 @@ bool UuidTreeModel::insertRows(int position, int rows,
 {
     Q_UNUSED(position)
 
-    QString parentId = *static_cast<QString*>(parent.internalPointer());
+    QString parentId;
+    if (parent.isValid())
+        parentId = *static_cast<QString*>(parent.internalPointer());
 
     bool success = true;
     beginInsertRows(parent, 0, rows - 1);
