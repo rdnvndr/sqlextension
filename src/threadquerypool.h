@@ -40,15 +40,15 @@ public:
     ThreadQueryItem<T> *acquire()
     {
         if (m_stopFetch)
-            return NULL;
+            return nullptr;
 
         m_semaphore.acquire();
         m_mutex.lock();
         ThreadQueryItem<T> *query = (!m_freeQueue.isEmpty())
-                ? m_freeQueue.dequeue() : NULL;
+                ? m_freeQueue.dequeue() : nullptr;
         m_mutex.unlock();
 
-        if (query == NULL) {
+        if (query == nullptr) {
             query = new ThreadQueryItem<T>(this, m_db);
             connect(this, &QObject::destroyed, query, &QObject::deleteLater);
         } else {

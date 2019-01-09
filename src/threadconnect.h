@@ -13,7 +13,7 @@ class ThreadConnect: public QThread {
 
 public:
     //! Конструктор класса
-    explicit ThreadConnect(QObject *parent = NULL);
+    explicit ThreadConnect(QObject *parent = nullptr);
 
     //! Запуск соединения в потоке
     void run() override;
