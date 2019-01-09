@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
             this, [=] (QUuid queryUuid, const QList<QSqlRecord> &values)
     {
         ui->logPlainText->insertPlainText("\n");
-        foreach (QSqlRecord record, values)
+        for (const QSqlRecord &record : qAsConst(values))
             ui->logPlainText->insertPlainText(
                         QString("Values: %1 \n")
                         .arg(record.value("FULLNAME").toString()));

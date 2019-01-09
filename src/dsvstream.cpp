@@ -93,7 +93,7 @@ QString DsvStream::read()
 
 bool DsvStream::writeLine(const QList<QVariant> &values)
 {
-    foreach (const QVariant &value, values) {
+    for (const QVariant &value : qAsConst(values)) {
         if (!write(value))
             return false;
     }
@@ -213,7 +213,7 @@ bool DsvStream::needQuotes(const QString &field)
 {
     if(m_alwaysQuotes)
         return true;
-    foreach (const QChar &ch, field) {
+    for (const QChar &ch : field) {
         if(ch == m_delimiter || ch == m_quote || ch == '\r' || ch == '\n') {
             return true;
         }
@@ -225,7 +225,7 @@ QString DsvStream::quoteString(const QString &in)
 {
     QString out;
     out.push_back(m_quote);
-    foreach (QChar ch, in) {
+    for (const QChar &ch : in) {
         if(ch == m_quote) {
             out.push_back(m_quote);
         }

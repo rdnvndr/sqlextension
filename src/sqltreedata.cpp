@@ -144,7 +144,7 @@ QString SqlTreeData::insertData(QString parent, const QMap<QString, QVariant> &d
     QStringList names = data.keys();
     QStringList values;
 
-    foreach (QVariant value, data.values()) {
+    for (const QVariant &value : data.values()) {
         values.append(QString("'%1'").arg(value.toString()));
     }
 

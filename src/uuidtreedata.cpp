@@ -155,7 +155,7 @@ bool UuidTreeData::removeChild(QString parent, QString id)
     UuidTreeNode* nc = node(id);
     if (!nc)
         return false;
-    foreach(QString child, nc->children)
+    for (const QString &child : qAsConst(nc->children))
         removeChild(id, child);
 
     if (!removeData(parent, id))
