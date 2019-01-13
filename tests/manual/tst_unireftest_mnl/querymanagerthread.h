@@ -24,7 +24,7 @@ public:
     //! Выполнение подзапроса
     void execQuery(const QString &strQuery);
 
-    //! Утанавливает пул запросов
+    //! Устанавливает пул запросов
     void setThreadPool(ThreadQueryPool<Query> *threadPool);
 
 public slots:

@@ -8,18 +8,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-/*
-    QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
-    db.setHostName("localhost");
-    db.setDatabaseName(
-            QString("DRIVER=%1;DATABASE=%2;SERVER=%3")
-            .arg("{SQL Server}")
-            .arg("VRTSERVER_V7")
-            .arg("localhost"));
-    db.setUserName("sa");
-    db.setPassword("111");
-    db.setPort(1433);
-*/
+
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(QApplication::applicationDirPath() + "/tst_sqlextension.db");
     if (db.open())
