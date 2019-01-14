@@ -2,5 +2,6 @@ project(subprojects)
 
 add_subdirectory(tst_dialogconnect_mnl)
 add_subdirectory(tst_threadquery_mnl)
+add_subdirectory(tst_threadmodel_mnl)
 add_subdirectory(tst_unireftest_mnl)
 add_subdirectory(tst_uuidtreemodel_mnl)
