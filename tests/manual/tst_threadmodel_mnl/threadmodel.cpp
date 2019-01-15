@@ -6,6 +6,7 @@
 #include <QFutureWatcher>
 #include <QFuture>
 #include <QtConcurrent>
+#include <QDebug>
 
 ThreadModel::ThreadModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -22,12 +23,10 @@ ThreadModel::ThreadModel(QObject *parent)
     if (!db.isOpen()) {
         QSqlError err = db.lastError();
         if (err.type() != QSqlError::NoError){
-//            ui->logPlainText->appendPlainText(err.text());
+            qDebug() << err.text();
             QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
         }
     }
-
-
 }
 
 ThreadModel::~ThreadModel()
@@ -118,29 +117,28 @@ void ThreadModel::fetchMore(const QModelIndex &index)
             TreeItem *item = threadQuery->parentItem();
             threadQuery->release();
 
-            for (const QSqlRecord &record : records) {
-                QList<QVariant> itemData;
-                int recCount = record.count();
-                for (int column = 0; column < recCount; ++column)
-                    itemData << record.value(column);
-                TreeItem *childItem = new TreeItem(itemData, item);
-                item->appendChild(childItem);
+            QModelIndex parent =  this->fromItem(item);
+            if (!records.isEmpty()) {
+                for (const QSqlRecord &record : records) {
+                    QList<QVariant> itemData;
+                    int recCount = record.count();
+                    for (int column = 0; column < recCount; ++column)
+                        itemData << record.value(column);
+                    TreeItem *childItem = new TreeItem(itemData, item);
+                    item->appendChild(childItem);
+                }
+
+                beginInsertRows(parent, 0, item->childCount() - 1);
+                endInsertRows();
             }
 
             item->setLocked(false);
-
-            QModelIndex parent =  this->fromItem(item);
-            beginInsertRows(parent, 0, parentItem->childCount() - 1);
-            endInsertRows();
-
             item->setFetched(true);
 
             // Обновление содержимого узла для представлений
-            /*
-            QList<QPersistentModelIndex> persistenIndexList;
-            persistenIndexList << QPersistentModelIndex(parent);
-            emit layoutChanged(persistenIndexList);
-            */
+            QList<QPersistentModelIndex> indexList {QPersistentModelIndex(parent)};
+            emit layoutChanged(indexList);
+
         }, Qt::QueuedConnection);
     }
 
@@ -190,7 +188,7 @@ QVariant ThreadModel::headerData(int section, Qt::Orientation orientation,
 
 bool ThreadModel::hasChildren(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent)
+    TreeItem *parentItem = this->toItem(parent);
 
-    return true;
+    return (parentItem->isFetched()) ? !parentItem->isEmpty() : true;
 }
