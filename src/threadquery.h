@@ -60,7 +60,7 @@ public:
     explicit ThreadQuery(const QSqlDatabase &db);
 
     //! Деструктор класса
-    virtual ~ThreadQuery();
+    virtual ~ThreadQuery() override;
 
     enum Location
     {
@@ -98,16 +98,20 @@ public:
 
 // Подготовка и выполнение запроса
     //! Подготовка запроса
-    QUuid prepare(const QString &query);
+    void prepare(const QString &query, const QUuid &queryUuid = QUuid::createUuid());
 
     //! Выполнение указанного запроса
-    QUuid execute(const QString &query);
+    void execute(const QString &query, const QUuid &queryUuid = QUuid::createUuid());
+
+    //! Выполнение указанного запроса
+    void execute(const char *query, const QUuid &queryUuid = QUuid::createUuid());
 
     //! Выполнение подготовленного запроса
-    QUuid execute();
+    void execute(const QUuid &queryUuid = QUuid::createUuid());
 
     //! Выполнение ранее подготовленного запроса в пакете
-    QUuid executeBatch(QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows);
+    void executeBatch(QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows,
+                       const QUuid &queryUuid = QUuid::createUuid());
 
     //! Возвращает текущий запрос
     QString   lastQuery();

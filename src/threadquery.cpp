@@ -121,53 +121,50 @@ QMap<QString, QVariant> ThreadQuery::boundValues()
     return m_boundValues;
 }
 
-QUuid ThreadQuery::prepare(const QString &query)
+void ThreadQuery::prepare(const QString &query, const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_boundTypes.clear();
     m_boundValues.clear();
     m_queryText = query;
 
-    m_queryUuid = QUuid::createUuid();
+    m_queryUuid = queryUuid;
     m_queryPrivate->setQueryUuid(QUuid::createUuid());
     QMetaObject::invokeMethod(m_queryPrivate, "prepare", Qt::QueuedConnection,
                               Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(QString, m_queryText));
-
-    return m_queryUuid;
 }
 
-QUuid ThreadQuery::execute(const QString &query)
+void ThreadQuery::execute(const QString &query, const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
-    m_queryUuid = QUuid::createUuid();
+    m_queryUuid = queryUuid;
     m_queryText = query;
     QMetaObject::invokeMethod(m_queryPrivate, "execute", Qt::QueuedConnection,
                               Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(QString, m_queryText));
-
-    return m_queryUuid;
 }
 
-QUuid ThreadQuery::execute()
+void ThreadQuery::execute(const char *query, const QUuid &queryUuid)
+{
+    execute(QString(query), queryUuid);
+}
+
+void ThreadQuery::execute(const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
-    m_queryUuid = QUuid::createUuid();
+    m_queryUuid = queryUuid;
     QMetaObject::invokeMethod(m_queryPrivate, "execute", Qt::QueuedConnection,
                               Q_ARG(QUuid, m_queryUuid));
-
-    return m_queryUuid;
 }
 
-QUuid ThreadQuery::executeBatch(QSqlQuery::BatchExecutionMode mode)
+void ThreadQuery::executeBatch(QSqlQuery::BatchExecutionMode mode, const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
     m_queryUuid = QUuid::createUuid();
     QMetaObject::invokeMethod(m_queryPrivate, "executeBatch", Qt::QueuedConnection,
                               Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(QSqlQuery::BatchExecutionMode, mode));
-
-    return m_queryUuid;
 }
 
 QString ThreadQuery::lastQuery()
