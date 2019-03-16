@@ -16,15 +16,22 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_threadTest = new ThreadQuery();
 
-    connect(m_threadTest, &ThreadQuery::executeDone, this, [=] (QUuid queryUuid) {
-            ui->logPlainText->insertPlainText("Execute done.\n");
-            m_threadTest->fetchAll(queryUuid);
-            m_threadTest->first(queryUuid);
+    connect(m_threadTest, &ThreadQuery::executeDone, this,
+            [=] (const QUuid &queryUuid, const QSqlError &err)
+    {
+        if (err.isValid())
+            return;
+
+        ui->logPlainText->insertPlainText("Execute done.\n");
+        m_threadTest->fetchAll(queryUuid);
+        m_threadTest->first(queryUuid);
     });
 
-    connect(m_threadTest, &ThreadQuery::values,
-            this, [=] (QUuid queryUuid, const QList<QSqlRecord> &values)
+    connect(m_threadTest, &ThreadQuery::values, this,
+            [=] (const QUuid &queryUuid, const QList<QSqlRecord> &values)
     {
+        Q_UNUSED(queryUuid)
+
         ui->logPlainText->insertPlainText("\n");
         for (const QSqlRecord &record : qAsConst(values))
             ui->logPlainText->insertPlainText(
@@ -34,8 +41,9 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->logPlainText->insertPlainText("\n");
     });
 
-    connect(m_threadTest, &ThreadQuery::changePosition,
-            this, [=] (QUuid queryUuid, int pos) {
+    connect(m_threadTest, &ThreadQuery::changePosition, this,
+            [=] (const QUuid &queryUuid, int pos)
+    {
         if (pos >= 0)
             m_threadTest->fetchOne(queryUuid);
         else {
@@ -44,8 +52,8 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
 
-    connect(m_threadTest, &ThreadQuery::value,
-            this, [=] (QUuid queryUuid, const QSqlRecord &value)
+    connect(m_threadTest, &ThreadQuery::value, this,
+            [=] (const QUuid &queryUuid, const QSqlRecord &value)
     {
         ui->logPlainText->insertPlainText(
                     QString("Value: %1 \n")

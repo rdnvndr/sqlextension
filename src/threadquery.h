@@ -170,15 +170,15 @@ public:
 
 signals:
     //! Сигнал об окончании подготовки запроса
-    void prepareDone(const QUuid &queryUuid);
+    void prepareDone(const QUuid &queryUuid, QSqlError err);
 
     //! Сигнал об окончании выполнения операции в потоке
-    void executeDone(const QUuid &queryUuid);
+    void executeDone(const QUuid &queryUuid, QSqlError err);
 
     //! Сигнал изменения номера позиции в потоке
     void changePosition(const QUuid &queryUuid, int pos);
 
-    //! Сигнал ошибки в потоке
+    //! Сигнал ошибки БД в потоке
     void error(const QUuid &queryUuid, QSqlError err);
 
     //! Сигнал получения значений из потока

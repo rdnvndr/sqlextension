@@ -43,8 +43,12 @@ void QueryManagerThread::setThreadPool(ThreadQueryPool<Query> *threadPool)
     m_threadPool = threadPool;
 }
 
-void QueryManagerThread::directExecuteDone(const QUuid &queryUuid)
+void QueryManagerThread::directExecuteDone(const QUuid &queryUuid, const QSqlError &err)
 {
+    if (err.isValid()) {
+        return;
+    }
+
     m_fields = "";
     m_expr   = "";
     m_table  = "";

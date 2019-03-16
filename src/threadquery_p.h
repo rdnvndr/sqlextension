@@ -100,15 +100,15 @@ public slots:
 
 signals:
     //! Сигнал об окончании подготовки запроса
-    void prepareDone(const QUuid &queryUuid);
+    void prepareDone(const QUuid &queryUuid, QSqlError err);
 
     //! Сигнал об окончании выполнения операции
-    void executeDone(const QUuid &queryUuid);
+    void executeDone(const QUuid &queryUuid, QSqlError err);
 
     //! Возвращает номер позиции
     void changePosition(const QUuid &queryUuid, int pos);
 
-    //! Возвращает ошибку
+    //! Возвращает ошибку в БД
     void error(const QUuid &queryUuid, QSqlError err);
 
     //! Возвращает все значения из потока

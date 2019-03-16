@@ -9,6 +9,7 @@ set(LIBRARIES
     sqlextension
 )
 include(../manual.cmake)
+include("${CMAKE_SOURCE_DIR}/cmake/qt.cmake")
 
 find_package(Qt5Core)
 target_link_libraries(${PROJECT_NAME} Qt5::Core)

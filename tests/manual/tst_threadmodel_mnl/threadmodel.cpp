@@ -102,7 +102,12 @@ void ThreadModel::fetchMore(const QModelIndex &index)
     threadQuery->setParentItem(parentItem);
     if (threadQuery->isNew()) {
         // Обработка окончания выполнение запроса
-        connect(threadQuery, &ThreadQuery::executeDone, [=] (const QUuid &queryUuid) {
+        connect(threadQuery, &ThreadQuery::executeDone, [=]
+                (const QUuid &queryUuid, const QSqlError &err)
+        {
+            if (err.isValid())
+                return;
+
             // Имитация долгого получения данных
             QThread::msleep(1000);
             threadQuery->fetchAll(queryUuid);

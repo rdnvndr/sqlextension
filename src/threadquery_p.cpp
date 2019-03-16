@@ -67,11 +67,9 @@ bool ThreadQueryPrivate::prepare(const QUuid &queryUuid, const QString &query)
 {
     m_queryUuid = queryUuid;
     bool ret = m_query->prepare(query);
-    if (!ret) {
-        emit error(m_queryUuid, m_query->lastError());
-    } else {
-        emit prepareDone(queryUuid);
-    }
+
+    emit prepareDone(queryUuid,
+                     (!ret) ? m_query->lastError() : QSqlError());
 
     return ret;
 }
@@ -83,11 +81,7 @@ bool ThreadQueryPrivate::execute(const QUuid &queryUuid)
     m_uuidMutex.unlock();
     bool ret = m_query->exec();
 
-    if (!ret) {
-        emit error(queryUuid, m_query->lastError());
-    } else {
-        emit executeDone(queryUuid);
-    }
+    emit executeDone(queryUuid, (!ret) ? m_query->lastError() : QSqlError());
 
     return ret;
 }
@@ -99,11 +93,7 @@ bool ThreadQueryPrivate::execute(const QUuid &queryUuid, const QString &query)
     m_uuidMutex.unlock();
     bool ret = m_query->exec(query);
 
-    if (!ret) {
-        emit error(queryUuid, m_query->lastError());
-    } else {
-        emit executeDone(queryUuid);
-    }
+    emit executeDone(queryUuid, (!ret) ? m_query->lastError() : QSqlError());
 
     return ret;
 }
@@ -116,11 +106,7 @@ bool ThreadQueryPrivate::executeBatch(const QUuid &queryUuid,
     m_uuidMutex.unlock();
     bool ret = m_query->execBatch(mode);
 
-    if (!ret) {
-        emit error(queryUuid, m_query->lastError());
-    } else {
-        emit executeDone(queryUuid);
-    }
+    emit executeDone(queryUuid, (!ret) ? m_query->lastError() : QSqlError());
 
     return ret;
 }

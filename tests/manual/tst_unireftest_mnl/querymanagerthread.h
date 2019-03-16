@@ -29,7 +29,7 @@ public:
 
 public slots:
     //! Обработка окончания выполнения операции внутри потока
-    void directExecuteDone(const QUuid &queryUuid);
+    void directExecuteDone(const QUuid &queryUuid, const QSqlError &err);
 
     //! Обработка получения значения внутри потока
     void directValue(const QUuid &queyUuid, const QSqlRecord &record);

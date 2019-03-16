@@ -80,7 +80,7 @@ void MainWindow::onActionExec()
         connect(threadQuery, &QueryManagerThread::error,
                 [this](const QUuid &queryUuid, const QSqlError &err)
         {
-            if (err.type() != QSqlError::NoError)
+            if (err.isValid())
                 this->ui->logPlainText->appendPlainText(err.text());
         });
     }
