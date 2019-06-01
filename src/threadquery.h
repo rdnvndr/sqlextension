@@ -26,18 +26,25 @@ class SQLEXTENSIONLIB ThreadQueryPrivate;
     ThreadQuery *threadQuery = new ThreadQuery();
 
     // Обработка окончания выполнение запроса
-    connect(threadQuery, &ThreadQuery::executeDone, [=] (const QUuid &queryUuid) {
+    connect(threadQuery, &ThreadQuery::executeDone,
+            [=] (const QUuid &queryUuid, const QSqlError &err)
+    {
+        if (err.isValid())
+            return;
         threadQuery->first(queryUuid);
     });
 
     //! Обработка выбора записи
-    connect(threadQuery, &ThreadQuery::changePosition, [=] (const QUuid &queryUuid, int pos) {
+    connect(threadQuery, &ThreadQuery::changePosition,
+            [=] (const QUuid &queryUuid, int pos)
+    {
         if (pos >= 0)
             threadQuery->fetchOne(queryUuid);
     });
 
     // Обработка получения значений
-    connect(threadQuery, &ThreadQuery::value, [=] (const QUuid &queryUuid, const QSqlRecord &value)
+    connect(threadQuery, &ThreadQuery::value,
+            [=] (const QUuid &queryUuid, const QSqlRecord &value)
     {
        qDebug() << QString("Value: %1 \n").arg(value.value(0).toString()));
        threadQuery->next(queryUuid);
@@ -111,7 +118,7 @@ public:
 
     //! Выполнение ранее подготовленного запроса в пакете
     void executeBatch(QSqlQuery::BatchExecutionMode mode = QSqlQuery::ValuesAsRows,
-                       const QUuid &queryUuid = QUuid::createUuid());
+                      const QUuid &queryUuid = QUuid::createUuid());
 
     //! Возвращает текущий запрос
     QString   lastQuery();
