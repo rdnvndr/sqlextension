@@ -11,8 +11,6 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-const QUuid ThreadQuery::FINISH_UUID("{64418950-771a-4e53-b6cb-154b5200565d}");
-
 ThreadQuery::ThreadQuery(const QString &query, const QSqlDatabase &db): QThread()
 {
     m_driverName = db.driverName();
@@ -163,7 +161,7 @@ void ThreadQuery::execute(const QUuid &queryUuid)
 void ThreadQuery::executeBatch(QSqlQuery::BatchExecutionMode mode, const QUuid &queryUuid)
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
-    m_queryUuid = QUuid::createUuid();
+    m_queryUuid = queryUuid;
     QMetaObject::invokeMethod(m_queryPrivate, "executeBatch", Qt::QueuedConnection,
                               Q_ARG(QUuid, m_queryUuid),
                               Q_ARG(QSqlQuery::BatchExecutionMode, mode));
@@ -264,11 +262,11 @@ void ThreadQuery::fetchAll(const QUuid &queryUuid)
 void ThreadQuery::finish()
 {
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
-    if (m_queryUuid == FINISH_UUID)
+    if (m_queryUuid == ThreadQueryPrivate::FINISH_UUID)
         return;
 
     QUuid oldUuid = m_queryUuid;
-    m_queryUuid = FINISH_UUID;
+    m_queryUuid = ThreadQueryPrivate::FINISH_UUID;
     m_queryPrivate->setQueryUuid(QUuid::createUuid());    
     QMetaObject::invokeMethod(m_queryPrivate, "finish", Qt::QueuedConnection,
                               Q_ARG(QUuid, oldUuid));
@@ -289,7 +287,7 @@ void ThreadQuery::clear()
     QMutexLocker locker((m_blockThread != QThread::currentThread()) ? &m_mutex : nullptr);
 
     QUuid oldUuid = m_queryUuid;
-    m_queryUuid = FINISH_UUID;
+    m_queryUuid = ThreadQueryPrivate::FINISH_UUID;
     m_queryPrivate->setQueryUuid(QUuid::createUuid());
 
     m_boundTypes.clear();

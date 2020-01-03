@@ -117,6 +117,10 @@ signals:
     //! Возвращает значение из потока
     void value(const QUuid &queryUuid, const QSqlRecord &record);
 
+public:
+    //! Идентификатор окончания запроса
+    static const QUuid FINISH_UUID;
+
 private:
     //! SQL запрос к БД
     QSqlQuery *m_query;

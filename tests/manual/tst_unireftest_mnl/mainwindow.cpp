@@ -60,8 +60,10 @@ void MainWindow::onActionExec()
         m_modelMutex.unlock();
     }
 
-    ThreadQueryItem<QueryManagerThread> *threadQuery = m_threadManagerPool->acquire();
-    if (threadQuery->isNew())
+    bool isNewInstance;
+    ThreadQueryItem<QueryManagerThread> *threadQuery
+            = m_threadManagerPool->acquire(&isNewInstance);
+    if (isNewInstance)
     {
         threadQuery->setThreadPool(m_threadPool);
         connect(threadQuery, &QueryManagerThread::stoppedFetch,

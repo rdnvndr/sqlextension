@@ -27,11 +27,13 @@ QueryManagerThread::~QueryManagerThread()
 
 void QueryManagerThread::execQuery(const QString &strQuery)
 {
-    ThreadQueryItem<Query> *query = m_threadPool->acquire();
-    query->setQueryManager(this);
+    bool isNewInstance;
+    ThreadQueryItem<Query> *query = m_threadPool->acquire(&isNewInstance);
     if (query == nullptr)
         return;
-    if (query->isNew()) {
+
+    query->setQueryManager(this);
+    if (isNewInstance) {
         connect(query, &Query::stoppedFetch,
                 query, &ThreadQueryItem<Query>::release);
     }

@@ -7,6 +7,8 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
+const QUuid ThreadQueryPrivate::FINISH_UUID("{64418950-771a-4e53-b6cb-154b5200565d}");
+
 ThreadQueryPrivate::ThreadQueryPrivate()
 {
 
@@ -192,7 +194,7 @@ void ThreadQueryPrivate::clear(const QUuid &queryUuid)
 {
     m_query->clear();
 
-    if (queryUuid != QUuid("{64418950-771a-4e53-b6cb-154b5200565d}"))
+    if (queryUuid != FINISH_UUID)
         emit changePosition(queryUuid, -3);
 }
 

@@ -98,9 +98,11 @@ void ThreadModel::fetchMore(const QModelIndex &index)
     TreeItem *parentItem = this->toItem(index);
     parentItem->setLocked(true);
 
-    ThreadQueryItem<PrntItmThreadQuery> *threadQuery = m_threadPool->acquire();
+    bool isNewInstance;
+    ThreadQueryItem<PrntItmThreadQuery> *threadQuery
+            = m_threadPool->acquire(&isNewInstance);
     threadQuery->setParentItem(parentItem);
-    if (threadQuery->isNew()) {
+    if (isNewInstance) {
         // Обработка окончания выполнение запроса
         connect(threadQuery, &ThreadQuery::executeDone, [=]
                 (const QUuid &queryUuid, const QSqlError &err)

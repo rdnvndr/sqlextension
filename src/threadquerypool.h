@@ -2,7 +2,7 @@
 #define THREADQUERYPOOL_H
 
 #include <QtCore/QObject>
-#include <QtCore/QQueue>
+#include <QtCore/QSet>
 #include <QtCore/QSemaphore>
 #include <QtSql/QSqlDatabase>
 
@@ -37,22 +37,28 @@ public:
     }
 
     //! Выдает многопоточный SQL запрос
-    ThreadQueryItem<T> *acquire()
+    ThreadQueryItem<T> *acquire(bool *isNewInstance = nullptr)
     {
         if (m_stopFetch)
             return nullptr;
 
-        m_semaphore.acquire();
         m_mutex.lock();
-        ThreadQueryItem<T> *query = (!m_freeQueue.isEmpty())
-                ? m_freeQueue.dequeue() : nullptr;
+        m_semaphore.acquire();
+        ThreadQueryItem<T> *query = nullptr;
+        if (!m_freeQueue.isEmpty()) {
+            query = *m_freeQueue.begin();
+            m_freeQueue.remove(query);
+        }
         m_mutex.unlock();
 
         if (query == nullptr) {
             query = new ThreadQueryItem<T>(this, m_db);
             connect(this, &QObject::destroyed, query, &QObject::deleteLater);
+            if (isNewInstance != nullptr)
+                *isNewInstance = true;
         } else {
-            query->m_busy = true;
+            if (isNewInstance != nullptr)
+                *isNewInstance = false;
         }
 
         return query;
@@ -61,8 +67,7 @@ public:
     //! Помечает занятым многопоточный SQL запрос
     bool acquire(ThreadQueryItem<T> *item) {
         QMutexLocker locker(&m_mutex);
-        if (m_freeQueue.removeOne(item)) {
-            item->m_busy = true;
+        if (m_freeQueue.remove(item)) {
             m_semaphore.acquire();
             return true;
         }
@@ -72,7 +77,7 @@ public:
     //! Удаляет многопоточный SQL запрос
     void remove(ThreadQueryItem<T> *item) {
         QMutexLocker locker(&m_mutex);
-        if (!m_freeQueue.removeOne(item))
+        if (!m_freeQueue.remove(item))
             m_semaphore.release();
     }
 
@@ -94,10 +99,11 @@ private:
     //! Освобождает многопоточный SQL запрос
     void release(ThreadQueryItem<T> *item)
     {
-        m_mutex.lock();
-        m_freeQueue.enqueue(item);
-        m_semaphore.release();
-        m_mutex.unlock();
+        QMutexLocker locker(&m_mutex);
+        if (!m_freeQueue.contains(item)) {
+            m_freeQueue.insert(item);
+            m_semaphore.release();
+        }
     }
 
 private:
@@ -111,7 +117,7 @@ private:
     QSqlDatabase m_db;
 
     //! Очередь свободных многопоточных SQL запросов
-    QQueue<ThreadQueryItem<T> *> m_freeQueue;
+    QSet<ThreadQueryItem<T> *> m_freeQueue;
 
     volatile bool m_stopFetch;
 };

@@ -259,8 +259,6 @@ private:
 
     //! Идентификатор запроса
     QUuid m_queryUuid;
-
-    static const QUuid FINISH_UUID;
 };
 
 }}
