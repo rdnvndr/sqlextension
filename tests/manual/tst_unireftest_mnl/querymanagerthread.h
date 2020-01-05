@@ -9,6 +9,7 @@
 #include "query.h"
 
 using namespace RTPTechGroup::SqlExtension;
+const int MAX_COUNT = 10;
 
 //! Класс получения таблиц класса УТС и списка полей с экранными именами
 class QueryManagerThread : public ThreadQuery
@@ -40,12 +41,18 @@ public slots:
     //! Обрабатывает получение значений
     void queryValue(const QUuid &queryUuid, const QSqlRecord &record);
 
+    //! Обрабатывает освобождение потока запросов
+    void releaseQuery();
+
 signals:
     //! Сигнал о получении значения
     void result(const QString& r);
 
     //! Сигнал остановки
     void stoppedFetch();
+
+    //! Сигнал освобождения
+    void releasedQuery();
 
 private:
     //! Пул запросов
@@ -68,6 +75,9 @@ private:
 
     //! Защищает количество результатов
     QMutex m_valueMutex;
+
+    //! Количество занятых потоков
+    volatile int m_busyCount;
 };
 
 #endif // QUERYMANAGERTHREAD_H

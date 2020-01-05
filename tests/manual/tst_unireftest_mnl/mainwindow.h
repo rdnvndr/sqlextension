@@ -49,7 +49,7 @@ public slots:
     //! Производит соединение с БД
     void onActionConnect();
 
-    //! Отображает количесво созданных и свободных элементов пула
+    //! Отображает количество созданных и свободных элементов пула
     void onShowPool();
 
     //! Отображает результаты поиска
@@ -80,14 +80,17 @@ private:
     //! Кэш результата запроса
     QCache<QString, QStringList> m_cache;
 
-    //! Пул многопоточных запроосов таблиц УТС
+    //! Пул многопоточных запросов таблиц УТС
     ThreadQueryPool<QueryManagerThread> *m_threadManagerPool;
 
     //! Пул запросов значений из таблиц
     ThreadQueryPool<Query>              *m_threadPool;
 
-    //! Текущий пул многопоточных запроосов данных
+    //! Текущий пул многопоточных запросов данных
     ThreadQueryItem<QueryManagerThread> *m_threadQuery;
+
+    //! Соединение возврата значения
+    QMetaObject::Connection m_valueConn;
 };
 
 #endif // MAINWINDOW_H

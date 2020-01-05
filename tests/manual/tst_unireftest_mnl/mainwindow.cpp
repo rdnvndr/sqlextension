@@ -33,8 +33,7 @@ void MainWindow::onActionExec()
 {
     ui->logPlainText->clear();
     if (!QSqlDatabase::database().isOpen()) {
-        ui->logPlainText->appendPlainText(
-                    "Отсутствует соединение с базой данных\n");
+        ui->logPlainText->appendPlainText("Отсутствует соединение с базой данных\n");
         return;
     }
 
@@ -44,6 +43,7 @@ void MainWindow::onActionExec()
     }
     if (m_threadQuery) {
         m_threadQuery->finish();
+        QObject::disconnect(m_valueConn);
         m_modelMutex.lock();
 
         if (ui->cacheAction->isChecked()) {
@@ -63,14 +63,13 @@ void MainWindow::onActionExec()
     bool isNewInstance;
     ThreadQueryItem<QueryManagerThread> *threadQuery
             = m_threadManagerPool->acquire(&isNewInstance);
+    m_valueConn = connect(threadQuery, &QueryManagerThread::result,
+                          this, &MainWindow::onResult, Qt::DirectConnection);
     if (isNewInstance)
     {
         threadQuery->setThreadPool(m_threadPool);
-        connect(threadQuery, &QueryManagerThread::stoppedFetch,
+        connect(threadQuery, &QueryManagerThread::releasedQuery,
                 threadQuery, &ThreadQueryItem<QueryManagerThread>::release);
-
-        connect(threadQuery, &QueryManagerThread::result,
-                this, &MainWindow::onResult, Qt::QueuedConnection);
 
         connect(threadQuery, &QueryManagerThread::changePosition,
                 [this](const QUuid &queryUuid, int pos)
@@ -162,8 +161,7 @@ void MainWindow::onActionConnect()
 void MainWindow::onShowPool()
 {
     if (m_threadManagerPool == nullptr || m_threadPool == nullptr) {
-        ui->logPlainText->appendPlainText(
-                    "Отсутствует соединение с базой данных\n");
+        ui->logPlainText->appendPlainText("Отсутствует соединение с базой данных\n");
         return;
     }
 
@@ -189,7 +187,7 @@ void MainWindow::onResult(QString r)
     ui->logPlainText->appendPlainText(
     QString("Запрос %1 выполнен за %2 мсек").arg(count).arg(abs(msecs)));
 
-    if (count == 9) {
+    if (count+1 == MAX_COUNT) {
         addToCache();
     }
 }

@@ -15,20 +15,26 @@ void Query::setQueryManager(QueryManagerThread *manager)
     m_valueConn = connect(this, &ThreadQuery::value,
                           manager, &QueryManagerThread::queryValue);
     m_errorConn = connect(this, &ThreadQuery::error,
-                           manager, &QueryManagerThread::error);
-    m_stopConn = connect(manager, &QueryManagerThread::stoppedFetch,
-                         this, &ThreadQuery::finish, Qt::QueuedConnection);
+                          manager, &QueryManagerThread::error);
+    m_stopConn  = connect(manager, &QueryManagerThread::stoppedFetch,
+                          this, &ThreadQuery::finish, Qt::DirectConnection);
+    m_releaseConn = connect(this, &Query::releasedQuery,
+                            manager, &QueryManagerThread::releaseQuery,
+                            Qt::DirectConnection);
 }
 
 void Query::directChangePosition(const QUuid &queryUuid, int pos)
 {
     if (pos >= 0) {
         this->fetchOne(queryUuid);
-    } else  if (pos == ThreadQuery::StoppedFetch) {
+        this->next(queryUuid);
+    } else if (pos == ThreadQuery::StoppedFetch) {
         QObject::disconnect(m_stopConn);
         QObject::disconnect(m_valueConn);
         QObject::disconnect(m_errorConn);
-        emit stoppedFetch();
-    } else
+        emit releasedQuery();
+        QObject::disconnect(m_releaseConn);
+    } else {
         this->finish();
+    }
 }

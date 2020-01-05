@@ -24,8 +24,8 @@ public slots:
     void directChangePosition(const QUuid &queryUuid, int pos);
 
 signals:
-    //! Сигнал остановки выполнения запроса
-    void stoppedFetch();
+    //! Сигнал освобождения запроса
+    void releasedQuery();
 
 private:
     //! Соединение возврата значения в менеджер запроса
@@ -36,6 +36,9 @@ private:
 
     //! Соединение получения ошибки
     QMetaObject::Connection m_errorConn;
+
+    //! Соединение освобождения менеджера запросов
+    QMetaObject::Connection m_releaseConn;
 };
 
 #endif // QUERY_H

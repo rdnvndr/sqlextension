@@ -2,7 +2,6 @@
 
 #include <QDebug>
 #include <QCoreApplication>
-const int MAX_COUNT = 10;
 
 QueryManagerThread::QueryManagerThread(QSqlDatabase db)
     : ThreadQuery(db)
@@ -18,6 +17,8 @@ QueryManagerThread::QueryManagerThread(QSqlDatabase db)
 
     m_sql = "SELECT TOP " + QString("%1").arg(MAX_COUNT)
             + " GUID, %1 AS NAME FROM %2 WHERE %3\n";
+
+    m_busyCount = 0;
 }
 
 QueryManagerThread::~QueryManagerThread()
@@ -32,9 +33,10 @@ void QueryManagerThread::execQuery(const QString &strQuery)
     if (query == nullptr)
         return;
 
+    ++m_busyCount;
     query->setQueryManager(this);
     if (isNewInstance) {
-        connect(query, &Query::stoppedFetch,
+        connect(query, &Query::releasedQuery,
                 query, &ThreadQueryItem<Query>::release);
     }
     query->execute(strQuery);
@@ -56,7 +58,9 @@ void QueryManagerThread::directExecuteDone(const QUuid &queryUuid, const QSqlErr
     m_table  = "";
     m_valueMutex.lock();
     m_count  = 0;
+    ++m_busyCount;
     m_valueMutex.unlock();
+
     this->first(queryUuid);
 }
 
@@ -89,29 +93,43 @@ void QueryManagerThread::directChangePosition(QUuid queryUuid, int pos)
 {
     if (pos >= 0) {
         this->fetchOne(queryUuid);
+    } else if (pos == ThreadQuery::StoppedFetch) {
+        releaseQuery();
     } else {
-        if (m_table != "" && pos == ThreadQuery::AfterLastRow)
+        if (m_table != "" && pos == ThreadQuery::AfterLastRow) {
             execQuery(m_sql.arg(m_fields).arg(m_table).arg(m_expr));
-        if (pos == ThreadQuery::StoppedFetch)
-            emit stoppedFetch();
+        }
+        this->finish();
     }
 }
 
 void QueryManagerThread::queryValue(const QUuid &queryUuid, const QSqlRecord &record)
 {
-    ThreadQuery *query = static_cast<ThreadQuery *>(sender());
+    Q_ASSERT(this->m_count <= MAX_COUNT+1);
+
     m_valueMutex.lock();
     if (this->m_count < MAX_COUNT) {
         this->m_count++;
         m_valueMutex.unlock();
         emit result(record.value(1).toString());
-        query->next(queryUuid);
     } else if (this->m_count == MAX_COUNT) {
         this->m_count++;
-        m_valueMutex.unlock();
         this->finish();
-    } else
         m_valueMutex.unlock();
+        emit stoppedFetch();
+    } else {
+        m_valueMutex.unlock();
+    }
+}
+
+void QueryManagerThread::releaseQuery()
+{
+    Q_ASSERT(m_busyCount > 0);
+
+    --m_busyCount;
+    if (m_busyCount == 0) {
+        emit releasedQuery();
+    }
 }
 
 
