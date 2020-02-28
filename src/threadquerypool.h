@@ -4,6 +4,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QSet>
 #include <QtCore/QSemaphore>
+#include <QtCore/QTimer>
 #include <QtSql/QSqlDatabase>
 
 #include "threadquery.h"
@@ -29,6 +30,9 @@ public:
         m_db = db;
         m_stopFetch = false;
         m_semaphore.release(maxCount);
+        m_expiryCount = 0;
+        connect(&m_timer, &QTimer::timeout,
+                this, &ThreadQueryPool::clearExpiredQueries);
     }
 
     //! Деструктор класса
@@ -92,6 +96,36 @@ public:
         return m_semaphore.available();
     }
 
+    //! Возвращает период удаления многопоточных SQL запрос
+    int expiryTimeout() const {
+        return m_timer.interval();
+    }
+
+    //! Устанавливает в мс период удаления многопоточных SQL запрос
+    void setExpiryTimeout(int expiryTimeout) {
+        if (expiryTimeout > 0)
+            m_timer.start(expiryTimeout);
+        else
+            m_timer.stop();
+    }
+
+    //! Удаляет запросы с истекшим временем
+    void clearExpiredQueries() {
+        m_mutex.lock();
+        while (!m_freeQueue.isEmpty() && m_expiryCount > 0) {
+            m_semaphore.acquire();
+            auto *query = *m_freeQueue.begin();
+            m_freeQueue.remove(query);
+            --m_expiryCount;
+
+            m_mutex.unlock();
+            delete query;
+            m_mutex.lock();
+        }
+        m_expiryCount = m_freeQueue.count();
+        m_mutex.unlock();
+    }
+
     //! Дружественный класс
     friend class ThreadQueryItem<T>;
 
@@ -118,6 +152,15 @@ private:
 
     //! Очередь свободных многопоточных SQL запросов
     QSet<ThreadQueryItem<T> *> m_freeQueue;
+
+    //! Период удаления многопоточных SQL запрос
+    int m_expiryTimeout;
+
+    //! Количество удаляемых многопоточных SQL запрос
+    int m_expiryCount;
+
+    //! Таймер
+    QTimer  m_timer;
 
     volatile bool m_stopFetch;
 };

@@ -87,7 +87,7 @@ private:
     ThreadQueryPool<Query>              *m_threadPool;
 
     //! Текущий пул многопоточных запросов данных
-    ThreadQueryItem<QueryManagerThread> *m_threadQuery;
+    QPointer< ThreadQueryItem<QueryManagerThread> > m_threadQuery;
 
     //! Соединение возврата значения
     QMetaObject::Connection m_valueConn;

@@ -18,7 +18,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->findLineEdit, &QLineEdit::textChanged, this, &MainWindow::onActionExec);
     connect(ui->poolAction, &QAction::triggered, this, &MainWindow::onShowPool);
 
-    m_threadQuery = nullptr;
     m_threadManagerPool = nullptr;
     m_threadPool = nullptr;
 }
@@ -41,7 +40,7 @@ void MainWindow::onActionExec()
         ui->logPlainText->appendPlainText("Введите строку поиска\n");
         return;
     }
-    if (m_threadQuery) {
+    if (!m_threadQuery.isNull()) {
         m_threadQuery->finish();
         QObject::disconnect(m_valueConn);
         m_modelMutex.lock();
@@ -146,7 +145,9 @@ void MainWindow::onActionConnect()
             m_threadManagerPool->deleteLater();
 
         this->m_threadManagerPool = new ThreadQueryPool<QueryManagerThread>(db);
-        this->m_threadPool        = new ThreadQueryPool<Query>(db);
+        this->m_threadManagerPool->setExpiryTimeout(5000);
+        this->m_threadPool = new ThreadQueryPool<Query>(db);
+        this->m_threadPool->setExpiryTimeout(5000);
     } else {
         QSqlError err = db.lastError();
         if (err.type() != QSqlError::NoError){
