@@ -12,6 +12,8 @@ Query::Query(QSqlDatabase db): ThreadQuery(db)
 
 void Query::setQueryManager(QueryManagerThread *manager)
 {
+    Q_ASSERT(manager != nullptr);
+
     m_valueConn = connect(this, &ThreadQuery::value,
                           manager, &QueryManagerThread::queryValue);
     m_errorConn = connect(this, &ThreadQuery::error,

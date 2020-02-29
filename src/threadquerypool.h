@@ -162,7 +162,7 @@ private:
     //! Таймер
     QTimer  m_timer;
 
-    volatile bool m_stopFetch;
+    std::atomic_bool m_stopFetch;
 };
 
 }}

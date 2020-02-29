@@ -77,7 +77,7 @@ private:
     QMutex m_valueMutex;
 
     //! Количество занятых потоков
-    volatile int m_busyCount;
+    std::atomic_int m_busyCount;
 };
 
 #endif // QUERYMANAGERTHREAD_H
