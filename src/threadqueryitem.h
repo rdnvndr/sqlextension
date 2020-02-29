@@ -49,9 +49,6 @@ private:
     void operator=( const ThreadQueryItem& ) = delete;
 
 private:
-    //! Многопоточный SQL запрос
-    ThreadQuery *m_query;
-
     //! Пул многопоточных SQL запросов
     QPointer< ThreadQueryPool<T> > m_pool;
 };

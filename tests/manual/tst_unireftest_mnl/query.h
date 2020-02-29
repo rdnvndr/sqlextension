@@ -19,6 +19,9 @@ public:
     //! Устанавливает менеджера запросов
     void setQueryManager(QueryManagerThread *manager);
 
+    //! Освобождает запрос
+    void releaseQuery();
+
 public slots:
     //! Обрабатывает изменение позиции
     void directChangePosition(const QUuid &queryUuid, int pos);

@@ -29,7 +29,7 @@ public:
     {
         m_db = db;
         m_stopFetch = false;
-        m_semaphore.release(maxCount);
+        m_availableCount.release(maxCount);
         m_expiryCount = 0;
         connect(&m_timer, &QTimer::timeout,
                 this, &ThreadQueryPool::clearExpiredQueries);
@@ -47,7 +47,7 @@ public:
             return nullptr;
 
         m_mutex.lock();
-        m_semaphore.acquire();
+        m_availableCount.acquire();
         ThreadQueryItem<T> *query = nullptr;
         if (!m_freeQueue.isEmpty()) {
             query = *m_freeQueue.begin();
@@ -72,7 +72,7 @@ public:
     bool acquire(ThreadQueryItem<T> *item) {
         QMutexLocker locker(&m_mutex);
         if (m_freeQueue.remove(item)) {
-            m_semaphore.acquire();
+            m_availableCount.acquire();
             return true;
         }
         return false;
@@ -82,7 +82,7 @@ public:
     void remove(ThreadQueryItem<T> *item) {
         QMutexLocker locker(&m_mutex);
         if (!m_freeQueue.remove(item))
-            m_semaphore.release();
+            m_availableCount.release();
     }
 
     //! Возвращает количество свободных SQL запросов
@@ -93,7 +93,7 @@ public:
 
     //! Возвращает возможное количество SQL запросов
     int count() {
-        return m_semaphore.available();
+        return m_availableCount.available();
     }
 
     //! Возвращает период удаления многопоточных SQL запрос
@@ -113,7 +113,7 @@ public:
     void clearExpiredQueries() {
         m_mutex.lock();
         while (!m_freeQueue.isEmpty() && m_expiryCount > 0) {
-            m_semaphore.acquire();
+            m_availableCount.acquire();
             auto *query = *m_freeQueue.begin();
             m_freeQueue.remove(query);
             --m_expiryCount;
@@ -136,13 +136,13 @@ private:
         QMutexLocker locker(&m_mutex);
         if (!m_freeQueue.contains(item)) {
             m_freeQueue.insert(item);
-            m_semaphore.release();
+            m_availableCount.release();
         }
     }
 
 private:
-    //! Количество многопоточных SQL запросов
-    QSemaphore m_semaphore;
+    //! Количество доступных многопоточных SQL запросов
+    QSemaphore m_availableCount;
 
     //! Мьютекс для работы с очередью
     QMutex m_mutex;

@@ -4,10 +4,17 @@
 
 Query::Query(QSqlDatabase db): ThreadQuery(db)
 {
-    connect(this, &ThreadQuery::changePosition,
-            this, &Query::directChangePosition);
+    connect(this, &ThreadQuery::changePosition, this, &Query::directChangePosition,
+            Qt::DirectConnection);
     connect(this, &ThreadQuery::executeDone,
-            this, &ThreadQuery::first);
+            this, [=] (const QUuid &queryUuid, const QSqlError &err) {
+                if (err.isValid())
+                    this->finish();
+                else
+                    this->first(queryUuid);
+            },
+            Qt::DirectConnection
+    );
 }
 
 void Query::setQueryManager(QueryManagerThread *manager)
@@ -21,8 +28,19 @@ void Query::setQueryManager(QueryManagerThread *manager)
     m_stopConn  = connect(manager, &QueryManagerThread::stoppedFetch,
                           this, &ThreadQuery::finish, Qt::DirectConnection);
     m_releaseConn = connect(this, &Query::releasedQuery,
-                            manager, &QueryManagerThread::releaseQuery,
-                            Qt::DirectConnection);
+                            manager, &QueryManagerThread::releaseQuery);
+}
+
+void Query::releaseQuery()
+{
+    QObject::disconnect(m_stopConn);
+    QObject::disconnect(m_valueConn);
+    QObject::disconnect(m_errorConn);
+    QObject::disconnect(m_releaseConn);
+
+    auto threadQuery = dynamic_cast<ThreadQueryItem<Query> *>(this);
+    if (threadQuery)
+        threadQuery->release();
 }
 
 void Query::directChangePosition(const QUuid &queryUuid, int pos)
@@ -31,11 +49,7 @@ void Query::directChangePosition(const QUuid &queryUuid, int pos)
         this->fetchOne(queryUuid);
         this->next(queryUuid);
     } else if (pos == ThreadQuery::StoppedFetch) {
-        QObject::disconnect(m_stopConn);
-        QObject::disconnect(m_valueConn);
-        QObject::disconnect(m_errorConn);
         emit releasedQuery();
-        QObject::disconnect(m_releaseConn);
     } else {
         this->finish();
     }

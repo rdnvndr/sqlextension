@@ -7,13 +7,16 @@ QueryManagerThread::QueryManagerThread(QSqlDatabase db)
     : ThreadQuery(db)
 {
     connect(this, &QueryManagerThread::executeDone,
-            this, &QueryManagerThread::directExecuteDone, Qt::DirectConnection);
+            this, &QueryManagerThread::directExecuteDone,
+            Qt::DirectConnection);
 
     connect(this, &QueryManagerThread::changePosition,
-            this, &QueryManagerThread::directChangePosition, Qt::DirectConnection);
+            this, &QueryManagerThread::directChangePosition,
+            Qt::DirectConnection);
 
     connect(this, &QueryManagerThread::value,
-            this, &QueryManagerThread::directValue, Qt::DirectConnection);
+            this, &QueryManagerThread::directValue,
+            Qt::DirectConnection);
 
     m_sql = "SELECT TOP " + QString("%1").arg(MAX_COUNT)
             + " GUID, %1 AS NAME FROM %2 WHERE %3\n";
@@ -28,17 +31,12 @@ QueryManagerThread::~QueryManagerThread()
 
 void QueryManagerThread::execQuery(const QString &strQuery)
 {
-    bool isNewInstance;
-    ThreadQueryItem<Query> *query = m_threadPool->acquire(&isNewInstance);
+    ThreadQueryItem<Query> *query = m_threadPool->acquire();
     if (query == nullptr)
         return;
 
     ++m_busyCount;
     query->setQueryManager(this);
-    if (isNewInstance) {
-        connect(query, &Query::releasedQuery,
-                query, &ThreadQueryItem<Query>::release);
-    }
     query->execute(strQuery);
 }
 
@@ -105,6 +103,7 @@ void QueryManagerThread::directChangePosition(QUuid queryUuid, int pos)
 
 void QueryManagerThread::queryValue(const QUuid &queryUuid, const QSqlRecord &record)
 {
+    Q_UNUSED(queryUuid);
     Q_ASSERT(this->m_count <= MAX_COUNT+1);
 
     m_valueMutex.lock();
@@ -126,10 +125,15 @@ void QueryManagerThread::releaseQuery()
 {
     Q_ASSERT(m_busyCount > 0);
 
+    auto query = dynamic_cast<Query *>(QObject::sender());
+    if (query)
+        query->releaseQuery();
+
     --m_busyCount;
     if (m_busyCount == 0) {
-        emit releasedQuery();
+        dynamic_cast<ThreadQueryItem<QueryManagerThread> *>(this)->release();
     }
+
 }
 
 

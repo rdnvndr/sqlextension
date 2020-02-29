@@ -42,6 +42,7 @@ void MainWindow::onActionExec()
     }
     if (!m_threadQuery.isNull()) {
         m_threadQuery->finish();
+        emit m_threadQuery->stoppedFetch();
         QObject::disconnect(m_valueConn);
         m_modelMutex.lock();
 
@@ -67,8 +68,6 @@ void MainWindow::onActionExec()
     if (isNewInstance)
     {
         threadQuery->setThreadPool(m_threadPool);
-        connect(threadQuery, &QueryManagerThread::releasedQuery,
-                threadQuery, &ThreadQueryItem<QueryManagerThread>::release);
 
         connect(threadQuery, &QueryManagerThread::changePosition,
                 [this](const QUuid &queryUuid, int pos)
