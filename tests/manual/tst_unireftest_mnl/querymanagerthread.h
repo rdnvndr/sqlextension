@@ -51,6 +51,9 @@ signals:
     //! Сигнал остановки
     void stoppedFetch();
 
+    //! Сигнал освобождения запроса
+    void releasedQuery();
+
 private:
     //! Пул запросов
     ThreadQueryPool<Query> *m_threadPool;

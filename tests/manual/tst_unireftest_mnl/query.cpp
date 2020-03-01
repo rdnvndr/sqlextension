@@ -27,7 +27,7 @@ void Query::setQueryManager(QueryManagerThread *manager)
                           manager, &QueryManagerThread::error);
     m_stopConn  = connect(manager, &QueryManagerThread::stoppedFetch,
                           this, &ThreadQuery::finish, Qt::DirectConnection);
-    m_releaseConn = connect(this, &Query::releasedQuery,
+    m_releaseConn = connect(this, &Query::releasingQuery,
                             manager, &QueryManagerThread::releaseQuery);
 }
 
@@ -49,7 +49,7 @@ void Query::directChangePosition(const QUuid &queryUuid, int pos)
         this->fetchOne(queryUuid);
         this->next(queryUuid);
     } else if (pos == ThreadQuery::StoppedFetch) {
-        emit releasedQuery();
+        emit releasingQuery();
     } else {
         this->finish();
     }

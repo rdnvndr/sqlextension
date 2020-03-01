@@ -44,6 +44,8 @@ void MainWindow::onActionExec()
         m_threadQuery->finish();
         emit m_threadQuery->stoppedFetch();
         QObject::disconnect(m_valueConn);
+    }
+    {
         m_modelMutex.lock();
 
         if (ui->cacheAction->isChecked()) {
@@ -69,16 +71,17 @@ void MainWindow::onActionExec()
     {
         threadQuery->setThreadPool(m_threadPool);
 
-        connect(threadQuery, &QueryManagerThread::changePosition,
-                [this](const QUuid &queryUuid, int pos)
+        connect(threadQuery, &QueryManagerThread::releasedQuery, [this]()
         {
-           if (pos == ThreadQuery::AfterLastRow)
-               this->addToCache();
+            if (m_model->rowCount() <= MAX_COUNT)
+                this->addToCache();
         });
 
         connect(threadQuery, &QueryManagerThread::error,
                 [this](const QUuid &queryUuid, const QSqlError &err)
         {
+            Q_UNUSED(queryUuid)
+
             if (err.isValid())
                 this->ui->logPlainText->appendPlainText(err.text());
         });
@@ -180,6 +183,7 @@ void MainWindow::onResult(QString r)
 {
     QMutexLocker lock(&m_modelMutex);
     int count = m_model->rowCount();
+    Q_ASSERT(count+1 <= MAX_COUNT);
     m_model->insertRow(count);
     m_model->setData(m_model->index(count,0), r);
     m_finish = QDateTime::currentDateTime();

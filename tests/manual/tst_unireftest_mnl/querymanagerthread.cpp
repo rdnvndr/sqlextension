@@ -132,6 +132,7 @@ void QueryManagerThread::releaseQuery()
     --m_busyCount;
     if (m_busyCount == 0) {
         dynamic_cast<ThreadQueryItem<QueryManagerThread> *>(this)->release();
+        emit releasedQuery();
     }
 
 }

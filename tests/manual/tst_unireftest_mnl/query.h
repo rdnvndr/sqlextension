@@ -27,8 +27,8 @@ public slots:
     void directChangePosition(const QUuid &queryUuid, int pos);
 
 signals:
-    //! Сигнал освобождения запроса
-    void releasedQuery();
+    //! Сигнал освобождающегося запроса
+    void releasingQuery();
 
 private:
     //! Соединение возврата значения в менеджер запроса
