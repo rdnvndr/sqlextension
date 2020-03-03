@@ -24,12 +24,13 @@ class ThreadQueryPool : public QObject
 public:
     //! Конструктор класса
     explicit ThreadQueryPool(QSqlDatabase db = QSqlDatabase::database(),
-                             uint maxCount = 1000)
+                             uint maxCount = 200, uint minCount = 0)
         : QObject()
     {
         m_db = db;
         m_stopFetch = false;
         m_availableCount.release(maxCount);
+        m_minCount = minCount;
         m_expiryCount = 0;
         connect(&m_timer, &QTimer::timeout,
                 this, &ThreadQueryPool::clearExpiredQueries);
@@ -112,6 +113,7 @@ public:
     //! Удаляет запросы с истекшим временем
     void clearExpiredQueries() {
         m_mutex.lock();
+        m_expiryCount -= m_minCount;
         while (!m_freeQueue.isEmpty() && m_expiryCount > 0) {
             m_availableCount.acquire();
             auto *query = *m_freeQueue.begin();
@@ -143,6 +145,9 @@ private:
 private:
     //! Количество доступных многопоточных SQL запросов
     QSemaphore m_availableCount;
+
+    //! Минимальное количество зарезервированных многопоточных SQL запросов
+    uint m_minCount;
 
     //! Мьютекс для работы с очередью
     QMutex m_mutex;

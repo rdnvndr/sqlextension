@@ -146,9 +146,10 @@ void MainWindow::onActionConnect()
         if (m_threadManagerPool != nullptr)
             m_threadManagerPool->deleteLater();
 
-        this->m_threadManagerPool = new ThreadQueryPool<QueryManagerThread>(db);
+        this->m_threadManagerPool
+                = new ThreadQueryPool<QueryManagerThread>(db, 100, 2);
         this->m_threadManagerPool->setExpiryTimeout(5000);
-        this->m_threadPool = new ThreadQueryPool<Query>(db);
+        this->m_threadPool = new ThreadQueryPool<Query>(db, 100, 2);
         this->m_threadPool->setExpiryTimeout(5000);
     } else {
         QSqlError err = db.lastError();
