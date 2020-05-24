@@ -4,22 +4,20 @@
 #include <QtCore/QIODevice>
 
 //! Класс DsvStream для работы с данными в формате DSV (delimiter-separated values)
-/*! Данный класс позволяет читать или записывать данные в формате DSV с
-    возможностью указания разделителя полей и кавычек.\n
+/*! Данный класс позволяет читать или записывать данные в формате DSV свозможностью
+    указания разделителя полей и кавычек.\n
     Пример:\n
       \code
-        file = new QFile("test.csv");
-        file->open(QIODevice::ReadWrite);
-        DsvStream *dsv = new DsvStream(file);
+        QFile file("test.csv");
+        file.open(QIODevice::ReadWrite);
+        DsvStream dsv(&file);
         QStringList list;
-        while (!dsv->atEnd()) {
-            list.append(dsv->read());
-            if (dsv->atLineEnd())
+        while (!dsv.atEnd()) {
+            list.append(dsv.read());
+            if (dsv.atLineEnd())
                 list.clear();
         }
-        delete dsv;
-        file->close();
-        delete file;
+        file.close();
       \endcode
 */
 class DsvStream
@@ -37,13 +35,6 @@ class DsvStream
 public:
     //! Конструктор класса
     explicit DsvStream(QIODevice *device);
-
-    //! Конструктор класса
-    explicit DsvStream(QByteArray *array,
-                       QIODevice::OpenMode openMode = QIODevice::ReadWrite);
-
-    //! Деструктор класса
-    virtual ~DsvStream();
 
 
     //! Возвращает символ разделителя столбцов
@@ -113,7 +104,6 @@ private:
 
     //! Считанное поле
     QByteArray m_field;
-
 };
 
 #endif // DSVSTREAM_H

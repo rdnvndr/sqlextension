@@ -12,24 +12,6 @@ DsvStream::DsvStream(QIODevice *device)
     m_alwaysQuotes = false;
 }
 
-
-DsvStream::DsvStream(QByteArray *array, QIODevice::OpenMode openMode)
-{
-    QBuffer buffer(array);
-    buffer.open(openMode);
-    m_device = &buffer;
-
-    m_quote = '"';
-    m_delimiter = ';';
-    m_state = LineStart;
-    m_alwaysQuotes = false;
-}
-
-DsvStream::~DsvStream()
-{
-
-}
-
 QChar DsvStream::delimiter() const
 {
     return m_delimiter;
@@ -121,8 +103,9 @@ bool DsvStream::write(const QVariant &value)
         field = quoteString(field);
     }
 
-    char ch = 0;
-    if (m_device->seek(m_device->pos() - 1)) {
+    qint64 pos = m_device->pos();
+    if ( (pos > 0) ? m_device->seek(pos - 1) : false) {
+        char ch = 0;
         m_device->getChar(&ch);
         if (ch != '\r' && ch != '\n')
             field = m_delimiter + field;
@@ -136,7 +119,7 @@ bool DsvStream::write(const QVariant &value)
 DsvStream::State DsvStream::step()
 {
     char ch = 0;
-       switch (m_state) {
+    switch (m_state) {
        case LineStart:
            return FieldStart;
 
@@ -203,10 +186,9 @@ DsvStream::State DsvStream::step()
 
        case End:
            break;
+    }
 
-       }
-
-       return End;
+    return End;
 }
 
 bool DsvStream::needQuotes(const QString &field)
