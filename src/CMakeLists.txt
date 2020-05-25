@@ -6,6 +6,9 @@ set(DESCRIPTION "SqlExtension Library")
 set(COMPANY     "RTPTechGroup")
 set(COPYRIGHT   "Copyright (C) RTPTechGroup")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 include("${CMAKE_SOURCE_DIR}/cmake/libs.cmake")
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DSQLEXTENSION_LIBRARY)

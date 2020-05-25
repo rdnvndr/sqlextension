@@ -42,10 +42,11 @@ public:
     }
 
     //! Выдает многопоточный SQL запрос
-    ThreadQueryItem<T> *acquire(bool *isNewInstance = nullptr)
+    QPair<ThreadQueryItem<T> *, bool> acquire()
     {
+        bool isNewInstance = false;
         if (m_stopFetch)
-            return nullptr;
+            return QPair<ThreadQueryItem<T> *, bool>(nullptr, isNewInstance);
 
         m_mutex.lock();
         m_availableCount.acquire();
@@ -59,14 +60,10 @@ public:
         if (query == nullptr) {
             query = new ThreadQueryItem<T>(this, m_db);
             connect(this, &QObject::destroyed, query, &QObject::deleteLater);
-            if (isNewInstance != nullptr)
-                *isNewInstance = true;
-        } else {
-            if (isNewInstance != nullptr)
-                *isNewInstance = false;
+            isNewInstance = true;
         }
 
-        return query;
+        return QPair<ThreadQueryItem<T> *, bool>(query, isNewInstance);
     }
 
     //! Помечает занятым многопоточный SQL запрос

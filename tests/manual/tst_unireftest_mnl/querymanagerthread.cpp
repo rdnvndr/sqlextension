@@ -31,7 +31,7 @@ QueryManagerThread::~QueryManagerThread()
 
 void QueryManagerThread::execQuery(const QString &strQuery)
 {
-    ThreadQueryItem<Query> *query = m_threadPool->acquire();
+    auto query = m_threadPool->acquire().first;
     if (query == nullptr)
         return;
 

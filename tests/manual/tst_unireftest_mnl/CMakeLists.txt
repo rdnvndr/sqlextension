@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(tst_unireftest_mnl VERSION 1.0.0)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(PRODUCTNAME "tst_unireftest_mnl")
 set(DESCRIPTION "tst_unireftest_mnl")
 set(COMPANY     "RTPTechGroup")

@@ -62,9 +62,7 @@ void MainWindow::onActionExec()
         m_modelMutex.unlock();
     }
 
-    bool isNewInstance;
-    ThreadQueryItem<QueryManagerThread> *threadQuery
-            = m_threadManagerPool->acquire(&isNewInstance);
+    auto [threadQuery, isNewInstance] = m_threadManagerPool->acquire();
     m_valueConn = connect(threadQuery, &QueryManagerThread::result,
                           this, &MainWindow::onResult, Qt::DirectConnection);
     if (isNewInstance)
