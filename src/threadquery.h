@@ -3,15 +3,12 @@
 
 #include <QtCore/QThread>
 #include <QtCore/QMutex>
-#include <QtCore/QObject>
 #include <QtCore/QMap>
 #include <QtCore/QPointer>
 #include <QtCore/QUuid>
 
-#include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
-#include <QtSql/QSqlRecord>
 
 #include "sqlextensionglobal.h"
 

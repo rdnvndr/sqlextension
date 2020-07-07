@@ -1,5 +1,8 @@
 #include "uuidtreedata.h"
 
+namespace RTPTechGroup {
+namespace SqlExtension {
+
 UuidTreeData::UuidTreeData(QObject *parent, int maxCost)
     : QObject(parent)
 {
@@ -169,5 +172,4 @@ bool UuidTreeData::removeChild(QString parent, QString id)
     return true;
 }
 
-
-
+}}

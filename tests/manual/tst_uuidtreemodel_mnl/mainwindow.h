@@ -8,6 +8,8 @@
 #include <sqlextension/uuidtreemodel.h>
 #include <sqlextension/sqltreedata.h>
 
+using namespace RTPTechGroup::SqlExtension;
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT

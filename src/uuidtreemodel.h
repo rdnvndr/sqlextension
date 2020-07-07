@@ -4,8 +4,9 @@
 #include "sqlextensionglobal.h"
 
 #include <QAbstractItemModel>
-#include <QModelIndex>
-#include <QVariant>
+
+namespace RTPTechGroup {
+namespace SqlExtension {
 
 class UuidTreeData;
 
@@ -80,5 +81,7 @@ private:
     //! Данные узла дерева
     UuidTreeData* m_data;
 };
+
+}}
 
 #endif // UUIDTREEMODEL_H

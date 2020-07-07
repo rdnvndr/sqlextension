@@ -3,6 +3,8 @@
 #include <QtCore/QMutexLocker>
 #include <QtCore/QObject>
 #include <QtCore/QCoreApplication>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlRecord>
 #include <QMetaObject>
 
 #include "threadquery_p.h"

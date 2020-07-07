@@ -1,6 +1,11 @@
 #include "uuidtreemodel.h"
 #include "uuidtreedata.h"
 
+#include <QtCore/QVariant>
+
+namespace RTPTechGroup {
+namespace SqlExtension {
+
 UuidTreeModel::UuidTreeModel(UuidTreeData *data, QObject *parent)
     :QAbstractItemModel(parent), m_data(data)
 {
@@ -160,3 +165,4 @@ bool UuidTreeModel::insertRows(int position, int rows,
     return success;
 }
 
+}}

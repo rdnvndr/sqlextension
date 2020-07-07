@@ -2,12 +2,11 @@
 #define THREADQUERY_P_H
 
 #include <QtCore/QObject>
-#include <QtCore/QVariant>
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlError>
-#include <QtCore/QReadWriteLock>
 #include <QtCore/QUuid>
 #include <QtCore/QMutex>
+
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
 
 #include "sqlextensionglobal.h"
 

@@ -1,7 +1,9 @@
 #include "querymanagerthread.h"
 
-#include <QDebug>
 #include <QCoreApplication>
+#include <QtCore/QVariant>
+#include <QtCore/QReadWriteLock>
+#include <QtSql/QSqlRecord>
 
 QueryManagerThread::QueryManagerThread(QSqlDatabase db)
     : ThreadQuery(db)

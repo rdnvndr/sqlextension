@@ -1,10 +1,13 @@
 #include "threadconnect.h"
 
-#include <QSqlDatabase>
-#include <QSqlError>
-#include <QMutexLocker>
-#include <QSqlDriver>
 #include <QApplication>
+#include <QtCore/QMutexLocker>
+#include <QtCore/QMutex>
+
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlDriver>
+
 
 namespace RTPTechGroup {
 namespace SqlExtension {

@@ -8,6 +8,9 @@
 #include <QStringList>
 #include <QVariant>
 
+namespace RTPTechGroup {
+namespace SqlExtension {
+
 //! Структура данных узла для кэша
 struct UuidTreeNode
 {
@@ -128,5 +131,7 @@ protected:
     //! Список полей данных для выборки
     QStringList m_dataNames;
 };
+
+}}
 
 #endif // UUIDTREEDATA_H

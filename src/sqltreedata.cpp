@@ -1,6 +1,11 @@
 #include "sqltreedata.h"
 
-#include <QUuid>
+#include <QtCore/QUuid>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
+
+namespace RTPTechGroup {
+namespace SqlExtension {
 
 SqlTreeData::SqlTreeData(QObject *parent, int maxCost)
     : UuidTreeData(parent, maxCost)
@@ -176,3 +181,4 @@ bool SqlTreeData::isEditable(QString id, int column) const
             && field != m_parentName);
 }
 
+}}

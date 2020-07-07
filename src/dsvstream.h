@@ -3,6 +3,9 @@
 
 #include <QtCore/QIODevice>
 
+namespace RTPTechGroup {
+namespace SqlExtension {
+
 //! Класс DsvStream для работы с данными в формате DSV (delimiter-separated values)
 /*! Данный класс позволяет читать или записывать данные в формате DSV свозможностью
     указания разделителя полей и кавычек.\n
@@ -106,4 +109,5 @@ private:
     QByteArray m_field;
 };
 
+}}
 #endif // DSVSTREAM_H

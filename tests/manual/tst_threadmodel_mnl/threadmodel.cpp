@@ -6,7 +6,7 @@
 #include <QFutureWatcher>
 #include <QFuture>
 #include <QtConcurrent>
-#include <QDebug>
+#include <QtSql/QSqlRecord>
 
 ThreadModel::ThreadModel(QObject *parent)
     : QAbstractItemModel(parent)

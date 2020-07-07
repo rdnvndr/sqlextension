@@ -1,8 +1,6 @@
 #ifndef QUERYMANAGERTHREAD_H
 #define QUERYMANAGERTHREAD_H
 
-#include <QtCore/QReadWriteLock>
-
 #include <sqlextension/threadquery.h>
 #include <sqlextension/threadquerypool.h>
 

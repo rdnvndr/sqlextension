@@ -5,6 +5,7 @@
 #include <QtCore/QSet>
 #include <QtCore/QSemaphore>
 #include <QtCore/QTimer>
+
 #include <QtSql/QSqlDatabase>
 
 #include "threadquery.h"
@@ -164,7 +165,7 @@ private:
     int m_expiryCount;
 
     //! Таймер
-    QTimer  m_timer;
+    QTimer m_timer;
 
     std::atomic_bool m_stopFetch;
 };

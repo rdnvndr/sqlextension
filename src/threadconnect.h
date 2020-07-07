@@ -1,8 +1,7 @@
 #ifndef THREADCONNECT_H
 #define THREADCONNECT_H
 
-#include <QThread>
-#include <QMutex>
+#include <QtCore/QThread>
 
 namespace RTPTechGroup {
 namespace SqlExtension {

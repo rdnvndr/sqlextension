@@ -1,12 +1,13 @@
 #ifndef SQLTREEDATA_H
 #define SQLTREEDATA_H
 
-#include <QObject>
-#include <QSqlDatabase>
-#include <QtSql>
+#include <QtSql/QSqlDatabase>
 
 #include "sqlextensionglobal.h"
 #include "uuidtreedata.h"
+
+namespace RTPTechGroup {
+namespace SqlExtension {
 
 //! Класс узла дерева
 class SQLEXTENSIONLIB SqlTreeData : public UuidTreeData
@@ -67,4 +68,5 @@ private:
     QString m_parentName;
 };
 
+}}
 #endif // SQLTREEDATA_H

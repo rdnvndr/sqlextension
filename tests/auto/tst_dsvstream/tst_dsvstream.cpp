@@ -3,6 +3,8 @@
 
 #include <sqlextension/dsvstream.h>
 
+using namespace RTPTechGroup::SqlExtension;
+
 class tst_DsvStream : public QObject
 {
     Q_OBJECT

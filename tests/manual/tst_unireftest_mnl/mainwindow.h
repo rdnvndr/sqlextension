@@ -3,17 +3,13 @@
 
 #include <QMainWindow>
 #include <QStringListModel>
-#include <QSemaphore>
 #include <QDateTime>
 #include <QMutex>
-#include <QQueue>
 #include <QCache>
-#include <QSqlDatabase>
 
 #include <sqlextension/dialogconnect.h>
 #include <sqlextension/threadquerypool.h>
 #include <sqlextension/threadquery.h>
-#include <math.h>
 
 #include "querymanagerthread.h"
 

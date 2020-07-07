@@ -3,6 +3,9 @@
 #include <QtCore/QBuffer>
 #include <QtCore/QVariant>
 
+namespace RTPTechGroup {
+namespace SqlExtension {
+
 DsvStream::DsvStream(QIODevice *device)
 {
     m_device = device;
@@ -226,3 +229,5 @@ void DsvStream::setAlwaysQuotes(bool alwaysQuotes)
 {
     m_alwaysQuotes = alwaysQuotes;
 }
+
+}}

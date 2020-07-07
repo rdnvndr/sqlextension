@@ -1,7 +1,10 @@
 #include "threadquery_p.h"
 
-#include <QtCore/QThread>
 #include <QtCore/QCoreApplication>
+#include <QtCore/QReadWriteLock>
+#include <QtCore/QVariant>
+#include <QtCore/QThread>
+
 #include <QtSql/QSqlRecord>
 
 namespace RTPTechGroup {
