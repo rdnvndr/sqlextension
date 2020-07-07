@@ -62,28 +62,28 @@ void MainWindow::onActionExec()
         m_modelMutex.unlock();
     }
 
-    auto [threadQuery, isNewInstance] = m_threadManagerPool->acquire();
+    auto threadQuery = m_threadManagerPool->acquire(
+                [this](ThreadQueryItem<QueryManagerThread> *queryItem)
+    {
+            queryItem->setThreadPool(m_threadPool);
+
+            connect(queryItem, &QueryManagerThread::releasedQuery, [this]()
+            {
+                if (m_model->rowCount() <= MAX_COUNT)
+                    this->addToCache();
+            });
+
+            connect(queryItem, &QueryManagerThread::error,
+                    [this](const QUuid &queryUuid, const QSqlError &err)
+            {
+                Q_UNUSED(queryUuid)
+
+                if (err.isValid())
+                    this->ui->logPlainText->appendPlainText(err.text());
+            });
+    });
     m_valueConn = connect(threadQuery, &QueryManagerThread::result,
                           this, &MainWindow::onResult, Qt::DirectConnection);
-    if (isNewInstance)
-    {
-        threadQuery->setThreadPool(m_threadPool);
-
-        connect(threadQuery, &QueryManagerThread::releasedQuery, [this]()
-        {
-            if (m_model->rowCount() <= MAX_COUNT)
-                this->addToCache();
-        });
-
-        connect(threadQuery, &QueryManagerThread::error,
-                [this](const QUuid &queryUuid, const QSqlError &err)
-        {
-            Q_UNUSED(queryUuid)
-
-            if (err.isValid())
-                this->ui->logPlainText->appendPlainText(err.text());
-        });
-    }
 
     m_threadQuery = threadQuery;
 

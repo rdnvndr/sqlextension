@@ -98,54 +98,53 @@ void ThreadModel::fetchMore(const QModelIndex &index)
     TreeItem *parentItem = this->toItem(index);
     parentItem->setLocked(true);
 
-    auto [threadQuery, isNewInstance] = m_threadPool->acquire();
-    threadQuery->setParentItem(parentItem);
-    if (isNewInstance) {
-        // Обработка окончания выполнение запроса
-        connect(threadQuery, &ThreadQuery::executeDone, [=]
-                (const QUuid &queryUuid, const QSqlError &err)
-        {
-            if (err.isValid())
-                return;
+    auto threadQuery = m_threadPool->acquire([=](ThreadQueryItem<PrntItmThreadQuery> *itemQuery){
+            // Обработка окончания выполнение запроса
+            connect(itemQuery, &ThreadQuery::executeDone,
+                    [=] (const QUuid &queryUuid, const QSqlError &err)
+            {
+                if (err.isValid())
+                    return;
 
-            // Имитация долгого получения данных
-            QThread::msleep(1000);
-            threadQuery->fetchAll(queryUuid);
-        });
+                // Имитация долгого получения данных
+                QThread::msleep(1000);
+                itemQuery->fetchAll(queryUuid);
+            });
 
-        // Обработка получения значений
-        QObject::connect(threadQuery, &ThreadQuery::values, this,
-                [=] (const QUuid &queryUuid, const QList<QSqlRecord> &records)
-        {
-            Q_UNUSED(queryUuid)
+            // Обработка получения значений
+            QObject::connect(itemQuery, &ThreadQuery::values, this,
+                    [=] (const QUuid &queryUuid, const QList<QSqlRecord> &records)
+            {
+                Q_UNUSED(queryUuid)
 
-            TreeItem *item = threadQuery->parentItem();
-            threadQuery->release();
+                TreeItem *item = itemQuery->parentItem();
+                itemQuery->release();
 
-            QModelIndex parent =  this->fromItem(item);
-            if (!records.isEmpty()) {
-                for (const QSqlRecord &record : records) {
-                    QList<QVariant> itemData;
-                    int recCount = record.count();
-                    for (int column = 0; column < recCount; ++column)
-                        itemData << record.value(column);
-                    TreeItem *childItem = new TreeItem(itemData, item);
-                    item->appendChild(childItem);
+                QModelIndex parent =  this->fromItem(item);
+                if (!records.isEmpty()) {
+                    for (const QSqlRecord &record : records) {
+                        QList<QVariant> itemData;
+                        int recCount = record.count();
+                        for (int column = 0; column < recCount; ++column)
+                            itemData << record.value(column);
+                        TreeItem *childItem = new TreeItem(itemData, item);
+                        item->appendChild(childItem);
+                    }
+
+                    beginInsertRows(parent, 0, item->childCount() - 1);
+                    endInsertRows();
                 }
 
-                beginInsertRows(parent, 0, item->childCount() - 1);
-                endInsertRows();
-            }
+                item->setLocked(false);
+                item->setFetched(true);
 
-            item->setLocked(false);
-            item->setFetched(true);
+                // Обновление содержимого узла для представлений
+                QList<QPersistentModelIndex> indexList {QPersistentModelIndex(parent)};
+                emit layoutChanged(indexList);
 
-            // Обновление содержимого узла для представлений
-            QList<QPersistentModelIndex> indexList {QPersistentModelIndex(parent)};
-            emit layoutChanged(indexList);
-
-        }, Qt::QueuedConnection);
-    }
+            }, Qt::QueuedConnection);
+    });
+    threadQuery->setParentItem(parentItem);
 
     QString sqlStr = QString(
                 "SELECT LastName, FirstName, Title, BirthDate, HireDate, Address,"

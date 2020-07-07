@@ -9,6 +9,7 @@
 
 #include "threadquery.h"
 #include "threadqueryitem.h"
+#include <functional>
 
 namespace RTPTechGroup {
 namespace SqlExtension {
@@ -42,11 +43,11 @@ public:
     }
 
     //! Выдает многопоточный SQL запрос
-    QPair<ThreadQueryItem<T> *, bool> acquire()
+    ThreadQueryItem<T> *acquire(
+          const std::function<void(ThreadQueryItem<T> *)> &initialize = nullptr)
     {
-        bool isNewInstance = false;
         if (m_stopFetch)
-            return QPair<ThreadQueryItem<T> *, bool>(nullptr, isNewInstance);
+            return nullptr;
 
         m_mutex.lock();
         m_availableCount.acquire();
@@ -60,10 +61,11 @@ public:
         if (query == nullptr) {
             query = new ThreadQueryItem<T>(this, m_db);
             connect(this, &QObject::destroyed, query, &QObject::deleteLater);
-            isNewInstance = true;
+            if (initialize != nullptr)
+                initialize(query);
         }
 
-        return QPair<ThreadQueryItem<T> *, bool>(query, isNewInstance);
+        return query;
     }
 
     //! Помечает занятым многопоточный SQL запрос
