@@ -70,7 +70,9 @@ void ThreadQueryPrivate::setForwardOnly(bool forward)
 
 bool ThreadQueryPrivate::prepare(const QUuid &queryUuid, const QString &query)
 {
+    m_uuidMutex.lock();
     m_queryUuid = queryUuid;
+    m_uuidMutex.unlock();
     bool ret = m_query->prepare(query);
 
     emit prepareDone(queryUuid,
