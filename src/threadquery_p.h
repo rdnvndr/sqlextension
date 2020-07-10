@@ -31,7 +31,7 @@ public slots:
     //! Устанавливает соединение
     void databaseConnect(const QString &driverName, const QString &databaseName,
                  const QString &hostName, int port, const QString &userName,
-                 const QString &password, const QString &query);
+                 const QString &password, const QString &sql);
 
 // Подготовка и выполнение запроса
     //! Установка заполнителя
@@ -45,13 +45,13 @@ public slots:
     void setForwardOnly(bool forward);
 
     //! Подготовка запроса
-    bool prepare(const QUuid &queryUuid, const QString &query);
+    bool prepare(const QUuid &queryUuid, const QString &sql);
 
     //! Выполнение подготовленного запроса
     bool execute(const QUuid &queryUuid);
 
     //! Выполнение указанного запроса
-    bool execute(const QUuid &queryUuid, const QString &query);
+    bool execute(const QUuid &queryUuid, const QString &sql);
 
     //! Выполнение ранее подготовленного запроса в пакете
     bool executeBatch(const QUuid &queryUuid,
@@ -121,8 +121,13 @@ public:
     static const QUuid FINISH_UUID;
 
 private:
+    //! Возвращает SQL запрос к БД
+    QSqlQuery *pquery() noexcept {
+        return reinterpret_cast<QSqlQuery*>(&m_query);
+    }
+
     //! SQL запрос к БД
-    QSqlQuery *m_query;
+    std::aligned_storage_t<sizeof(QSqlQuery), alignof(QSqlQuery)> m_query;
 
     //! Соединение с БД
     QString m_connectionName;
