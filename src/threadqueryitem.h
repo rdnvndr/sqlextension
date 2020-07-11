@@ -10,23 +10,26 @@
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-template<class T>
+template<typename T>
 class ThreadQueryPool;
 
 //! Класс предназначен для обёртки многопоточного SQL запроса
-template<class T>
+template<typename T>
 class ThreadQueryItem : public T
 {
 
 public:
     //! Деструктор класса
-    virtual ~ThreadQueryItem() {
-        if (m_pool)
+    virtual ~ThreadQueryItem()
+    {
+        if (m_pool) {
             m_pool->remove(this);
+        }
     }
 
     //! Возвращает в пул многопоточных SQL запросов
-    void release() {
+    void release()
+    {
         if (m_pool) {
             m_pool->release(this);
         }

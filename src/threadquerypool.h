@@ -8,18 +8,20 @@
 
 #include <QtSql/QSqlDatabase>
 
+#include <functional>
+
 #include "threadquery.h"
 #include "threadqueryitem.h"
-#include <functional>
+
 
 namespace RTPTechGroup {
 namespace SqlExtension {
 
-template<class T>
+template<typename T>
 class ThreadQueryItem;
 
 //! Класс пула многопоточных SQL запросов
-template<class T>
+template<typename T>
 class ThreadQueryPool : public QObject
 {
 
@@ -39,7 +41,8 @@ public:
     }
 
     //! Деструктор класса
-    virtual ~ThreadQueryPool() {
+    virtual ~ThreadQueryPool()
+    {
         m_stopFetch = true;
     }
 
@@ -50,9 +53,9 @@ public:
         if (m_stopFetch)
             return nullptr;
 
-        m_mutex.lock();
         m_availableCount.acquire();
         ThreadQueryItem<T> *query = nullptr;
+        m_mutex.lock();
         if (!m_freeQueue.isEmpty()) {
             query = *m_freeQueue.begin();
             m_freeQueue.remove(query);
@@ -70,7 +73,8 @@ public:
     }
 
     //! Помечает занятым многопоточный SQL запрос
-    bool acquire(ThreadQueryItem<T> *item) {
+    bool acquire(ThreadQueryItem<T> *item)
+    {
         QMutexLocker locker(&m_mutex);
         if (m_freeQueue.remove(item)) {
             m_availableCount.acquire();
@@ -80,30 +84,37 @@ public:
     }
 
     //! Удаляет многопоточный SQL запрос
-    void remove(ThreadQueryItem<T> *item) {
+    void remove(ThreadQueryItem<T> *item)
+    {
         QMutexLocker locker(&m_mutex);
         if (!m_freeQueue.remove(item))
             m_availableCount.release();
     }
 
     //! Возвращает количество свободных SQL запросов
-    int freeCount() {
+    int freeCount()
+    {
         QMutexLocker locker(&m_mutex);
         return m_freeQueue.count();
     }
 
     //! Возвращает возможное количество SQL запросов
-    int count() {
+    int count() const
+    {
         return m_availableCount.available();
     }
 
     //! Возвращает период удаления многопоточных SQL запрос
-    int expiryTimeout() const {
+    int expiryTimeout()
+    {
+        QMutexLocker locker(&m_mutex);
         return m_timer.interval();
     }
 
     //! Устанавливает в мс период удаления многопоточных SQL запрос
-    void setExpiryTimeout(int expiryTimeout) {
+    void setExpiryTimeout(int expiryTimeout)
+    {
+        QMutexLocker locker(&m_mutex);
         if (expiryTimeout > 0)
             m_timer.start(expiryTimeout);
         else
@@ -111,10 +122,10 @@ public:
     }
 
     //! Удаляет запросы с истекшим временем
-    void clearExpiredQueries() {
+    void clearExpiredQueries()
+    {
         m_mutex.lock();
-        m_expiryCount -= m_minCount;
-        while (!m_freeQueue.isEmpty() && m_expiryCount > 0) {
+        while (!m_freeQueue.isEmpty() && m_expiryCount > m_minCount) {
             m_availableCount.acquire();
             auto *query = *m_freeQueue.begin();
             m_freeQueue.remove(query);
@@ -167,6 +178,7 @@ private:
     //! Таймер
     QTimer m_timer;
 
+    //! Флаг остановки предоставления многопоточных SQL запрос
     std::atomic_bool m_stopFetch;
 };
 
