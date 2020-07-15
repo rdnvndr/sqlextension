@@ -124,19 +124,12 @@ public:
     //! Удаляет запросы с истекшим временем
     void clearExpiredQueries()
     {
-        m_mutex.lock();
+        QMutexLocker locker(&m_mutex);
         while (!m_freeQueue.isEmpty() && m_expiryCount > m_minCount) {
-            m_availableCount.acquire();
-            auto *query = *m_freeQueue.begin();
-            m_freeQueue.remove(query);
             --m_expiryCount;
-
-            m_mutex.unlock();
-            delete query;
-            m_mutex.lock();
+            delete *m_freeQueue.begin();
         }
         m_expiryCount = m_freeQueue.count();
-        m_mutex.unlock();
     }
 
     //! Дружественный класс
@@ -161,7 +154,7 @@ private:
     uint m_minCount;
 
     //! Мьютекс для работы с очередью
-    QMutex m_mutex;
+    QRecursiveMutex m_mutex;
 
     //! База данных
     QSqlDatabase m_db;
