@@ -3,10 +3,11 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
-#include <QtCore/QMutex>
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
+
+#include <atomic>
 
 #include "sqlextensionglobal.h"
 
@@ -132,11 +133,8 @@ private:
     //! Соединение с БД
     QString m_connectionName;
 
-    //! Защищает изменение идентификатора запросов
-    QMutex m_uuidMutex;
-
     //! Идентификатор запроса
-    QUuid m_queryUuid;
+    std::atomic<QUuid> m_queryUuid;
 };
 
 }}

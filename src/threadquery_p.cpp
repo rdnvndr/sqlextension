@@ -54,7 +54,7 @@ void ThreadQueryPrivate::databaseConnect(
 void ThreadQueryPrivate::bindValue(const QUuid &queryUuid, const QString &placeholder,
                                    const QVariant &val, QSql::ParamType paramType)
 {
-    if (m_queryUuid != queryUuid)
+    if (queryUuid != m_queryUuid)
         return;
     pquery()->bindValue(placeholder, val, paramType);
 }
@@ -72,9 +72,7 @@ void ThreadQueryPrivate::setForwardOnly(bool forward)
 
 bool ThreadQueryPrivate::prepare(const QUuid &queryUuid, const QString &sql)
 {
-    m_uuidMutex.lock();
     m_queryUuid = queryUuid;
-    m_uuidMutex.unlock();
     bool ret = pquery()->prepare(sql);
 
     emit prepareDone(queryUuid,
@@ -85,9 +83,7 @@ bool ThreadQueryPrivate::prepare(const QUuid &queryUuid, const QString &sql)
 
 bool ThreadQueryPrivate::execute(const QUuid &queryUuid)
 {
-    m_uuidMutex.lock();
     m_queryUuid = queryUuid;
-    m_uuidMutex.unlock();
     bool ret = pquery()->exec();
 
     emit executeDone(queryUuid, (!ret) ? pquery()->lastError() : QSqlError());
@@ -97,9 +93,7 @@ bool ThreadQueryPrivate::execute(const QUuid &queryUuid)
 
 bool ThreadQueryPrivate::execute(const QUuid &queryUuid, const QString &sql)
 {
-    m_uuidMutex.lock();
     m_queryUuid = queryUuid;
-    m_uuidMutex.unlock();
     bool ret = pquery()->exec(sql);
 
     emit executeDone(queryUuid, (!ret) ? pquery()->lastError() : QSqlError());
@@ -110,9 +104,7 @@ bool ThreadQueryPrivate::execute(const QUuid &queryUuid, const QString &sql)
 bool ThreadQueryPrivate::executeBatch(const QUuid &queryUuid,
                                       QSqlQuery::BatchExecutionMode mode)
 {
-    m_uuidMutex.lock();
     m_queryUuid = queryUuid;
-    m_uuidMutex.unlock();
     bool ret = pquery()->execBatch(mode);
 
     emit executeDone(queryUuid, (!ret) ? pquery()->lastError() : QSqlError());
@@ -122,7 +114,7 @@ bool ThreadQueryPrivate::executeBatch(const QUuid &queryUuid,
 
 bool ThreadQueryPrivate::first(const QUuid &queryUuid)
 {
-    if (m_queryUuid != queryUuid)
+    if (queryUuid != m_queryUuid)
         return false;
 
     bool ret = pquery()->first();
@@ -132,7 +124,7 @@ bool ThreadQueryPrivate::first(const QUuid &queryUuid)
 
 bool ThreadQueryPrivate::next(const QUuid &queryUuid)
 {
-    if (m_queryUuid != queryUuid)
+    if (queryUuid != m_queryUuid)
         return false;
 
     bool ret = pquery()->next();
@@ -142,7 +134,7 @@ bool ThreadQueryPrivate::next(const QUuid &queryUuid)
 
 bool ThreadQueryPrivate::seek(const QUuid &queryUuid, int index, bool relative)
 {
-    if (m_queryUuid != queryUuid)
+    if (queryUuid != m_queryUuid)
         return false;
 
     bool ret = pquery()->seek(index, relative);
@@ -152,7 +144,7 @@ bool ThreadQueryPrivate::seek(const QUuid &queryUuid, int index, bool relative)
 
 bool ThreadQueryPrivate::previous(const QUuid &queryUuid)
 {
-    if (m_queryUuid != queryUuid)
+    if (queryUuid != m_queryUuid)
         return false;
 
     bool ret = pquery()->previous();
@@ -162,7 +154,7 @@ bool ThreadQueryPrivate::previous(const QUuid &queryUuid)
 
 bool ThreadQueryPrivate::last(const QUuid &queryUuid)
 {
-    if (m_queryUuid != queryUuid)
+    if (queryUuid != m_queryUuid)
         return false;
 
     bool ret = pquery()->last();
@@ -175,7 +167,7 @@ void ThreadQueryPrivate::fetchAll(const QUuid &queryUuid)
     QList<QSqlRecord> records;
     while (pquery()->next())
     {
-        if (m_queryUuid != queryUuid)
+        if (queryUuid != m_queryUuid)
             return;
 
         records.append(pquery()->record());
@@ -185,7 +177,7 @@ void ThreadQueryPrivate::fetchAll(const QUuid &queryUuid)
 
 void ThreadQueryPrivate::fetchOne(const QUuid &queryUuid)
 {
-    if (m_queryUuid != queryUuid)
+    if (queryUuid != m_queryUuid)
         return;
 
     emit value(queryUuid, pquery()->record());
@@ -234,9 +226,7 @@ bool ThreadQueryPrivate::rollback()
 
 void ThreadQueryPrivate::setQueryUuid(const QUuid &queryUuid)
 {
-    m_uuidMutex.lock();
     m_queryUuid = queryUuid;
-    m_uuidMutex.unlock();
 }
 
 }}

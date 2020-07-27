@@ -5,14 +5,16 @@
 #include <QtCore/QSet>
 #include <QtCore/QSemaphore>
 #include <QtCore/QTimer>
+#include <QtCore/QMutex>
 
 #include <QtSql/QSqlDatabase>
 
 #include <functional>
 
+#include <utils/recursivespinlock.h>
+#include <utils/spinlocker.h>
 #include "threadquery.h"
 #include "threadqueryitem.h"
-
 
 namespace RTPTechGroup {
 namespace SqlExtension {
@@ -55,12 +57,12 @@ public:
 
         m_availableCount.acquire();
         ThreadQueryItem<T> *query = nullptr;
-        m_mutex.lock();
+        m_spinlock.lock();
         if (!m_freeQueue.isEmpty()) {
             query = *m_freeQueue.begin();
             m_freeQueue.remove(query);
         }
-        m_mutex.unlock();
+        m_spinlock.unlock();
 
         if (query == nullptr) {
             query = new ThreadQueryItem<T>(this, m_db);
@@ -75,7 +77,7 @@ public:
     //! Помечает занятым многопоточный SQL запрос
     bool acquire(ThreadQueryItem<T> *item)
     {
-        QMutexLocker locker(&m_mutex);
+        SpinLocker locker(&m_spinlock);
         if (m_freeQueue.remove(item)) {
             m_availableCount.acquire();
             return true;
@@ -86,7 +88,7 @@ public:
     //! Удаляет многопоточный SQL запрос
     void remove(ThreadQueryItem<T> *item)
     {
-        QMutexLocker locker(&m_mutex);
+        SpinLocker locker(&m_spinlock);
         if (!m_freeQueue.remove(item))
             m_availableCount.release();
     }
@@ -94,7 +96,7 @@ public:
     //! Возвращает количество свободных SQL запросов
     int freeCount()
     {
-        QMutexLocker locker(&m_mutex);
+        SpinLocker locker(&m_spinlock);
         return m_freeQueue.count();
     }
 
@@ -107,14 +109,14 @@ public:
     //! Возвращает период удаления многопоточных SQL запрос
     int expiryTimeout()
     {
-        QMutexLocker locker(&m_mutex);
+        SpinLocker locker(&m_spinlock);
         return m_timer.interval();
     }
 
     //! Устанавливает в мс период удаления многопоточных SQL запрос
     void setExpiryTimeout(int expiryTimeout)
     {
-        QMutexLocker locker(&m_mutex);
+        SpinLocker locker(&m_spinlock);
         if (expiryTimeout > 0)
             m_timer.start(expiryTimeout);
         else
@@ -124,7 +126,7 @@ public:
     //! Удаляет запросы с истекшим временем
     void clearExpiredQueries()
     {
-        QMutexLocker locker(&m_mutex);
+        SpinLocker locker(&m_spinlock);
         while (!m_freeQueue.isEmpty() && m_expiryCount > m_minCount) {
             --m_expiryCount;
             delete *m_freeQueue.begin();
@@ -139,7 +141,7 @@ private:
     //! Освобождает многопоточный SQL запрос
     void release(ThreadQueryItem<T> *item)
     {
-        QMutexLocker locker(&m_mutex);
+        SpinLocker locker(&m_spinlock);
         if (!m_freeQueue.contains(item)) {
             m_freeQueue.insert(item);
             m_availableCount.release();
@@ -153,8 +155,8 @@ private:
     //! Минимальное количество зарезервированных многопоточных SQL запросов
     uint m_minCount;
 
-    //! Мьютекс для работы с очередью
-    QRecursiveMutex m_mutex;
+    //! Рекурсивный spinlock для работы с очередью
+    RecursiveSpinLock m_spinlock;
 
     //! База данных
     QSqlDatabase m_db;

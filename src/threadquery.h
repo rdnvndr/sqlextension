@@ -2,7 +2,6 @@
 #define THREADQUERY_H
 
 #include <QtCore/QThread>
-#include <QtCore/QMutex>
 #include <QtCore/QMap>
 #include <QtCore/QPointer>
 #include <QtCore/QUuid>
@@ -11,6 +10,9 @@
 #include <QtSql/QSqlError>
 
 #include "sqlextensionglobal.h"
+#include <utils/spinlock.h>
+
+using namespace RTPTechGroup::Utils;
 
 namespace RTPTechGroup {
 namespace SqlExtension {
@@ -209,8 +211,8 @@ private slots:
     void pValue(const QUuid &queryUuid, const QSqlRecord &record);
 
 private:
-    //! Мьютекс подготовки запроса
-    QMutex m_mutex;
+    //! Spinlock подготовки запроса
+    SpinLock m_spinlock;
 
     //! Последняя ошибка работы с БД
     QSqlError m_lastError;

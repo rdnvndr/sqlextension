@@ -6,6 +6,10 @@ set(DESCRIPTION "SqlExtension Library")
 set(COMPANY     "RTPTechGroup")
 set(COPYRIGHT   "Copyright (C) RTPTechGroup")
 
+set(LIBRARIES
+    utils
+)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -21,3 +25,5 @@ target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
 
 find_package(Qt5Sql)
 target_link_libraries(${PROJECT_NAME} Qt5::Sql)
+
+target_link_libraries(${PROJECT_NAME} atomic)

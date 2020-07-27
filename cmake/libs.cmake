@@ -1,8 +1,9 @@
 include("${CMAKE_SOURCE_DIR}/cmake/main.cmake")
 
-if ("${CMAKE_SOURCE_DIR}/src/3rdparty/${PROJECT_NAME}/src"
-        STREQUAL "${PROJECT_SOURCE_DIR}"
+string(REGEX MATCH "\/3rdparty\/${PROJECT_NAME}\/src$" PARTY "${PROJECT_SOURCE_DIR}")
+if ("${PARTY}" STREQUAL "/3rdparty/${PROJECT_NAME}/src"
     OR "${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
+
     # Пути к бинарным файлам
     set(INCPATH  "include")
     set(RINCPATH "../include")

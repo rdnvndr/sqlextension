@@ -1,0 +1,3 @@
+[submodule "3rdparty/utils"]
+	path = 3rdparty/utils
+	url = git@github.com:rdnvndr/utils.git
