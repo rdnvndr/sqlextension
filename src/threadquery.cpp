@@ -261,6 +261,16 @@ void ThreadQuery::fetchAll(const QUuid &queryUuid)
                               Q_ARG(QUuid, m_queryUuid));
 }
 
+void ThreadQuery::fetchSome(int count, const QUuid &queryUuid)
+{
+    SpinLocker locker((m_blockThread != QThread::currentThread()) ? &m_spinlock : nullptr);
+    if (!queryUuid.isNull() && queryUuid != m_queryUuid)
+        return;
+
+    QMetaObject::invokeMethod(m_queryPrivate, "fetchSome", Qt::QueuedConnection,
+                              Q_ARG(int, count), Q_ARG(QUuid, m_queryUuid));
+}
+
 void ThreadQuery::finish()
 {
     SpinLocker locker((m_blockThread != QThread::currentThread()) ? &m_spinlock : nullptr);

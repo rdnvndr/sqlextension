@@ -78,6 +78,9 @@ public slots:
     //! Вызывает получение всех значений в потоке
     void fetchAll(const QUuid &queryUuid);
 
+    //! Вызывает получение указанного количества значений из потока
+    void fetchSome(const int &count, const QUuid &queryUuid);
+
     //! Вызывает получение значения из потока
     void fetchOne(const QUuid &queryUuid);
 

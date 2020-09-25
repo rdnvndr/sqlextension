@@ -165,13 +165,28 @@ bool ThreadQueryPrivate::last(const QUuid &queryUuid)
 void ThreadQueryPrivate::fetchAll(const QUuid &queryUuid)
 {
     QList<QSqlRecord> records;
-    while (pquery()->next())
+    bool isChangePosition = pquery()->first();
+    while (isChangePosition)
     {
         if (queryUuid != m_queryUuid)
             return;
 
         records.append(pquery()->record());
+        isChangePosition = pquery()->next();
     }
+    emit values(queryUuid, records);
+}
+
+void ThreadQueryPrivate::fetchSome(const int &count, const QUuid &queryUuid)
+{
+    QList<QSqlRecord> records;
+    int row = 0;
+    do {
+        if (queryUuid != m_queryUuid)
+            return;
+
+        records.append(pquery()->record());
+    } while (pquery()->next() && row < count);
     emit values(queryUuid, records);
 }
 

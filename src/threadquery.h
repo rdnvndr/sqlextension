@@ -154,6 +154,9 @@ public:
     //! Вызывает получение всех значений в потоке
     void fetchAll(const QUuid &queryUuid = QUuid());
 
+    //! Вызывает получение указанного количества значений из потока
+    void fetchSome(int count, const QUuid &queryUuid = QUuid());
+
     //! Вызывает получение значения из потока
     void fetchOne(const QUuid &queryUuid = QUuid());
 
