@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.10)
 project(sqlextension VERSION 1.0.0)
 
 set(PRODUCTNAME "SqlExtension Library")
@@ -25,5 +25,3 @@ target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
 
 find_package(Qt5Sql)
 target_link_libraries(${PROJECT_NAME} Qt5::Sql)
-
-target_link_libraries(${PROJECT_NAME} atomic)
